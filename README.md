@@ -37,7 +37,7 @@ A API está documentada em [`docs/openapi.yaml`](docs/openapi.yaml) (OpenAPI 3.1
 
 ## Stack
 
-Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito · Tailwind CSS v4 · Poppins · Zod · Zustand · lucide-react · Vitest. Nas próximas fases: MapLibre GL, Recharts, TanStack Query, React Hook Form, `@react-pdf/renderer`, `docx` e Playwright.
+Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito · Tailwind CSS v4 · Poppins · Zod · Zustand · TanStack Query · MapLibre GL (basemap Carto/OSM) · Recharts · lucide-react · Vitest. Nas próximas fases: React Hook Form, `@react-pdf/renderer`, `docx` e Playwright.
 
 ## Documentação
 
@@ -55,12 +55,12 @@ Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito ·
 ```
 src/
   app/            rotas: landing, (app)/telas, privacidade, api/v1
-  components/     brand, layout, ui (e, nas próximas fases, mapa, gráficos e tour)
+  components/     brand, layout, ui, map, prescription, simulator, charts, data
   domain/         modelos puros: UTCI, IVTU, prescrição, simulador, ESG + schemas Zod
   server/         repositórios (contratos + mock), serviços, gerador de dados demonstrativos
   lib/            config, formatadores pt-BR, i18n, tema, logger
   stores/         estado de cliente (Zustand)
-scripts/          seed-demo-data.ts, export-sql-seed.ts, generate-openapi.ts
+scripts/          seed-demo-data.ts, export-sql-seed.ts, generate-openapi.ts, copy-maplibre-worker.mjs
 db/               schema.sql (PostGIS) e seeds/
 apps/api/         plano do backend FastAPI (não implementado)
 docs/             arquitetura, metodologia, dados, ADRs, marca e roadmap

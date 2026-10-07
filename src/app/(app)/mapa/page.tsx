@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { PageContainer } from "@/components/layout/page-container";
-import { ScreenInProgress } from "@/components/layout/screen-in-progress";
-import { PageHeader } from "@/components/ui/page-header";
+import { Suspense } from "react";
+import { HeatMapScreen, HeatMapSkeleton } from "@/components/map/heat-map-screen";
 import { messages } from "@/lib/i18n";
 
-const screen = messages.screens.map;
 const nav = messages.nav.items.map;
 
 export const metadata: Metadata = { title: nav.label, description: nav.description };
 
+/** A tela lê a URL (`?bloco=`, `?camada=`) no cliente; o esqueleto sai no HTML estático. */
 export default function Page() {
   return (
-    <PageContainer>
-      <PageHeader eyebrow={screen.eyebrow} title={screen.title} description={nav.description} />
-      <ScreenInProgress />
-    </PageContainer>
+    <Suspense fallback={<HeatMapSkeleton />}>
+      <HeatMapScreen />
+    </Suspense>
   );
 }

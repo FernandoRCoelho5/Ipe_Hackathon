@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageContainer } from "@/components/layout/page-container";
-import { ScreenInProgress } from "@/components/layout/screen-in-progress";
+import { SimulatorScreen, SimulatorSkeleton } from "@/components/simulator/simulator-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { messages } from "@/lib/i18n";
 
@@ -13,7 +14,9 @@ export default function Page() {
   return (
     <PageContainer>
       <PageHeader eyebrow={screen.eyebrow} title={screen.title} description={nav.description} />
-      <ScreenInProgress />
+      <Suspense fallback={<SimulatorSkeleton />}>
+        <SimulatorScreen />
+      </Suspense>
     </PageContainer>
   );
 }

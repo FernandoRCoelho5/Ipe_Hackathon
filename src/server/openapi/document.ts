@@ -115,7 +115,7 @@ const ERROR_DESCRIPTIONS: Record<number, string> = {
   404: "Recurso não encontrado",
   413: "Corpo acima de 64 KB",
   415: "Corpo deve ser application/json",
-  429: "Limite de escritas excedido (30/min por IP)",
+  429: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)",
   500: "Erro interno",
 };
 

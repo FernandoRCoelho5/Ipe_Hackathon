@@ -115,3 +115,27 @@ Formato curto: contexto → decisão → consequências. Decisões novas entram 
 **Decisão.** Comprimir respostas JSON com gzip no wrapper da API (`CompressionStream`) e criar `GET /thermals/utci-by-hour`, com o UTCI de todos os quarteirões nas 11 horas em cerca de 7 KB comprimidos. A geometria vem uma vez; o slider recolore o mapa no cliente.
 
 **Consequências.** Camadas em cerca de 41 KB e slider instantâneo. Em produção atrás de nginx ou CDN, a compressão pode migrar para o proxy sem mudar o contrato.
+
+## ADR-015 · Telas no cliente com TanStack Query e estado na URL
+
+**Contexto.** O município ativo é estado do navegador (persistido), e filtros, camada e quarteirão selecionado precisam virar links compartilháveis. Buscar no servidor a cada filtro tornaria as páginas dinâmicas e anularia o HTML estático do Cache Components.
+
+**Decisão.** Páginas estáticas com o esqueleto da tela; a tela é um Client Component em `<Suspense>` que lê a URL e consome a API v1 com TanStack Query (`src/lib/api/queries.ts`). Filtros e seleção vão para a URL pela History API nativa (`replaceState`/`pushState`), que o App Router sincroniza com `useSearchParams` sem nova renderização no servidor.
+
+**Consequências.** As telas saem do CDN como estáticas, o frontend fala só com o contrato OpenAPI (o backend FastAPI pode substituir os Route Handlers sem mudar telas) e qualquer visão pode ser compartilhada por link. O custo é uma ida à API após a hidratação, coberta por esqueletos e cache de cinco minutos.
+
+## ADR-016 · Worker do MapLibre no mesmo domínio e CSP do mapa
+
+**Contexto.** O MapLibre 6 é só ESM e resolve seu Web Worker relativo ao próprio módulo (`import.meta.url`), referência que se perde quando o Turbopack empacota o código. A CSP prevista para esta fase também precisa liberar o basemap.
+
+**Decisão.** `scripts/copy-maplibre-worker.mjs` (em `predev` e `prebuild`) copia o worker para `public/vendor/` (fora do Git), e `<ThermalMap />` aponta para ele com `setWorkerUrl`, com a versão na query string. A CSP libera `basemaps.cartocdn.com` e subdomínios em `connect-src` e `img-src` e o próprio domínio em `worker-src`. Scripts mantêm `'unsafe-inline'` (script de tema e payload RSC sem nonce), porque nonces tornariam todas as páginas dinâmicas.
+
+**Consequências.** O mapa funciona sob CSP, e o Docker herda o passo pelo `npm run build`. Trocar de basemap exige atualizar `BASEMAP_ORIGINS` em `next.config.ts`.
+
+## ADR-017 · Limite próprio para cálculos POST sem efeito colateral
+
+**Contexto.** O simulador dispara `POST /simulation/what-if` e `POST /esg/impact` a cada ajuste dos controles (com debounce de 250 ms). Com o limite de escritas (30/min), uma sessão normal de exploração receberia 429.
+
+**Decisão.** Esses dois endpoints usam `computeRateLimiter` (240/min por IP e rota); escritas de verdade seguem em 30/min.
+
+**Consequências.** Exploração fluida no simulador, ainda com proteção contra abuso. O OpenAPI documenta os dois limites na resposta 429.

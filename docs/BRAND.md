@@ -21,6 +21,10 @@ Definidas em [`src/app/globals.css`](../src/app/globals.css) como tokens do Tail
 
 **Escala térmica** (`bg-thermal-1` a `bg-thermal-6`, utilitário `thermal-gradient`): verde → lima → amarelo → laranja → vermelho → vinho. Vermelho e vinho existem só para dados, como pede o manual. Nos mapas, a cor vem sempre acompanhada de valor numérico e rótulo, para que a leitura não dependa só da cor (daltonismo).
 
+**Escalas do mapa** ([`components/map/scales.ts`](../src/components/map/scales.ts)): faixas fixas por camada (UTCI 26–46 °C, superfície 25–50 °C, IVTU por nível, cobertura arbórea em verdes, risco de alagamento em azuis), iguais em qualquer hora e município. Os selos de dado (`IvtuBadge`, `UtciChip`) escolhem texto Verde Ipê ou branco pelo maior contraste.
+
+**Gráficos** (`--chart-current`, `--chart-simulated`): vermelho térmico × Azul Cidade, par validado para daltonismo nos dois temas (ΔE ≥ 19 em deuteranopia). A série "situação atual" é tracejada e há legenda e tabela de dados, então a leitura não depende só da cor.
+
 ### Contraste (WCAG 2.1 AA)
 
 | Combinação                                 | Razão    |

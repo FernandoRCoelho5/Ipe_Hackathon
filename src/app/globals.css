@@ -107,6 +107,11 @@
   --danger-soft: #fdecea;
   --warning-soft: #fff4d6;
   --warning-fg: #6b4a00;
+  /* Gráficos: "situação atual" × "com intervenção" (par validado para daltonismo). */
+  --chart-current: #d2381c;
+  --chart-simulated: #159ebf;
+  --chart-grid: #e2e5d9;
+  --chart-axis: #5f7468;
 }
 
 [data-theme="dark"] {
@@ -134,6 +139,10 @@
   --danger-soft: #3a1512;
   --warning-soft: #3a2c08;
   --warning-fg: #fcd877;
+  --chart-current: #e8553a;
+  --chart-simulated: #159ebf;
+  --chart-grid: #1b4231;
+  --chart-axis: #93ab9c;
 }
 
 @theme inline {
@@ -160,6 +169,8 @@
   --color-danger-soft: var(--danger-soft);
   --color-warning-soft: var(--warning-soft);
   --color-warning-fg: var(--warning-fg);
+  --color-chart-current: var(--chart-current);
+  --color-chart-simulated: var(--chart-simulated);
 }
 
 @layer base {

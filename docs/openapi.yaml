@@ -287,7 +287,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:
@@ -494,7 +494,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:
@@ -734,7 +734,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:
@@ -817,7 +817,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:
@@ -1043,7 +1043,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:
@@ -1183,7 +1183,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:
@@ -1429,7 +1429,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:
@@ -1561,7 +1561,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: Limite de escritas excedido (30/min por IP)
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
           content:
             application/json:
               schema:

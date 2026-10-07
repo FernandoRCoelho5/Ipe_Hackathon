@@ -43,7 +43,7 @@
 
 - **Contratos:** [`src/lib/api/contracts.ts`](../src/lib/api/contracts.ts) (Zod), a fonte única de tipos, validação e [`docs/openapi.yaml`](./openapi.yaml) (`npm run openapi`).
 - **Handlers:** `src/app/api/v1/**/route.ts`, finos: validam, chamam o serviço e respondem.
-- **Wrapper `withApi`** ([`src/server/http/handler.ts`](../src/server/http/handler.ts)): `X-Request-Id`, log estruturado, erros no formato `ApiError` (400/404/413/415/429/500), rate limit de escritas (30/min por IP e rota), corpo JSON limitado a 64 KB e gzip.
+- **Wrapper `withApi`** ([`src/server/http/handler.ts`](../src/server/http/handler.ts)): `X-Request-Id`, log estruturado, erros no formato `ApiError` (400/404/413/415/429/500), rate limit de escritas (30/min por IP e rota; 240/min nos cálculos what-if e ESG), corpo JSON limitado a 64 KB e gzip.
 - **Serviços:** `src/server/services/*` compõem repositórios e domínio; os diagnósticos são memoizados por município.
 
 | Recurso              | Endpoints                                                                        |
@@ -58,6 +58,22 @@
 | Relatórios           | `GET /reports/programs`, `POST /reports/preview`                                 |
 
 `GET /api/health` atende orquestradores (Docker, balanceadores).
+
+## Telas e dados no cliente
+
+As telas são Client Components dentro de `<Suspense>` (leem a URL com `useSearchParams`): o esqueleto sai no HTML estático e os dados vêm da API v1.
+
+- **Consultas:** [`src/lib/api/queries.ts`](../src/lib/api/queries.ts) reúne chave, função e política de cache de cada endpoint para o TanStack Query; [`client.ts`](../src/lib/api/client.ts) converte `ApiError` em `ApiClientError` com mensagem pronta para a interface.
+- **Município ativo:** `useActiveMunicipality()` (contexto do layout + Zustand) é `null` até a reidratação, para nenhuma tela buscar dados do município errado.
+- **Estado na URL:** filtros, camada, página e quarteirão aberto (`?bloco=`) via History API nativa (`useUrlState`). Os links são compartilháveis e o "voltar" funciona. `useBlockMunicipalitySync` alinha quarteirão e município quando um link aponta para outra cidade.
+- **Mapa:** [`<ThermalMap />`](../src/components/map/thermal-map.tsx) é o único arquivo que conhece o MapLibre. A geometria entra uma vez; UTCI da hora, seleção e destaque são `feature-state`.
+- **Simulador:** os controles editam um rascunho puro ([`scenario.ts`](../src/components/simulator/scenario.ts)); o efeito é sempre calculado pela API (`POST /simulation/what-if`, com debounce), e o resultado anterior fica esmaecido enquanto o novo chega.
+
+| Tela       | Endpoints usados                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| Mapa       | `thermals/map-layers`, `thermals/utci-by-hour`, `alerts`, `prescriptions/ivtu-ranking`, `blocks/{id}` |
+| Prescrição | `prescriptions/ivtu-ranking`, `blocks/{id}`, `blocks/{id}/checklist` (GET e PUT)                      |
+| Simulador  | `blocks/{id}`, `simulation/what-if`, `esg/impact`, `simulation/scenarios` (GET e POST)                |
 
 ## Banco de dados
 

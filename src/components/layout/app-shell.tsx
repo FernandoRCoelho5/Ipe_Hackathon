@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import type { Municipality } from "@/domain/municipality/types";
 import { useAppStore } from "@/stores/app-store";
 import { AppHeader } from "./app-header";
+import { MunicipalitiesProvider } from "./municipality-context";
 import { Sidebar } from "./sidebar";
 
 interface AppShellProps {
@@ -26,14 +27,16 @@ export function AppShell({ municipalities, children }: AppShellProps) {
   }, [municipalities]);
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppHeader municipalities={municipalities} />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main id="conteudo" tabIndex={-1} className="min-w-0 flex-1 focus:outline-none">
-          {children}
-        </main>
+    <MunicipalitiesProvider municipalities={municipalities}>
+      <div className="flex min-h-dvh flex-col">
+        <AppHeader municipalities={municipalities} />
+        <div className="flex flex-1">
+          <Sidebar />
+          <main id="conteudo" tabIndex={-1} className="min-w-0 flex-1 focus:outline-none">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </MunicipalitiesProvider>
   );
 }

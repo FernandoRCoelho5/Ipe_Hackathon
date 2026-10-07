@@ -298,6 +298,7 @@ export const blockFeaturePropertiesSchema = z
       .nullable(),
   })
   .meta({ id: "BlockFeatureProperties" });
+export type BlockFeatureProperties = z.infer<typeof blockFeaturePropertiesSchema>;
 
 export const mapLayersResponseSchema = z
   .object({

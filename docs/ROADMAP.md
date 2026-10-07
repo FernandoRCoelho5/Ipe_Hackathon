@@ -7,8 +7,8 @@
 | 1 · Fundação      | Tokens da marca, Poppins, logotipo, app shell, tema claro/escuro, i18n, CI, docs iniciais            | ✅ Concluída |
 | 2 · Domínio       | Zod, UTCI, IVTU, motor prescritivo, simulador, ESG (testados); seed demonstrativo; repositórios mock | ✅ Concluída |
 | 3 · API           | `/api/v1/*`, `docs/openapi.yaml`, `db/schema.sql` (PostGIS), `docker-compose.yml`                    | ✅ Concluída |
-| 4 · Telas 1–3     | Mapa de calor (MapLibre), Prescrição/IVTU, Simulador what-if                                         | ⏳ Próxima   |
-| 5 · Telas 4–6     | Relatórios (PDF/DOCX), Ciência cidadã e IoT, Adote uma Ilha Verde                                    | —            |
+| 4 · Telas 1–3     | Mapa de calor (MapLibre), Prescrição/IVTU, Simulador what-if                                         | ✅ Concluída |
+| 5 · Telas 4–6     | Relatórios (PDF/DOCX), Ciência cidadã e IoT, Adote uma Ilha Verde                                    | ⏳ Próxima   |
 | 6 · Venda         | Landing/pitch, perfis de acesso (RF08), Modo Apresentação (`?demo=1`)                                | —            |
 | 7 · Endurecimento | Acessibilidade (axe), Lighthouse ≥ 90, e2e Playwright, revisão visual completa                       | —            |
 

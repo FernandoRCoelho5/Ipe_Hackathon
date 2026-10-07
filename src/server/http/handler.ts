@@ -17,6 +17,12 @@ const MAX_BODY_BYTES = 64 * 1024;
 /** 30 escritas por minuto por IP e rota. */
 const writeLimiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
 
+/**
+ * POSTs de cálculo puro (simulação what-if, ESG) não gravam nada e são disparados
+ * pelos controles deslizantes do simulador: limite mais folgado, ainda por IP e rota.
+ */
+export const computeRateLimiter = createRateLimiter({ limit: 240, windowMs: 60_000 });
+
 export const CACHE = {
   none: "no-store",
   /** Dados demonstrativos mudam no máximo por hora; privado porque a API terá sessão. */
