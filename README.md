@@ -16,22 +16,25 @@ npm run dev        # http://localhost:3000
 npm run check      # lint + typecheck + testes + build (o mesmo portão do CI)
 ```
 
-| Script                                   | O que faz                                    |
-| ---------------------------------------- | -------------------------------------------- |
-| `npm run dev`                            | Servidor de desenvolvimento (Turbopack)      |
-| `npm run build` / `npm start`            | Build e servidor de produção                 |
-| `npm run lint` · `npm run typecheck`     | ESLint e TypeScript estrito                  |
-| `npm run test` · `npm run test:coverage` | Vitest + Testing Library                     |
-| `npm run format`                         | Prettier (com ordenação de classes Tailwind) |
+| Script                                   | O que faz                                          |
+| ---------------------------------------- | -------------------------------------------------- |
+| `npm run dev`                            | Servidor de desenvolvimento (Turbopack)            |
+| `npm run build` / `npm start`            | Build e servidor de produção                       |
+| `npm run lint` · `npm run typecheck`     | ESLint e TypeScript estrito                        |
+| `npm run test` · `npm run test:coverage` | Vitest + Testing Library                           |
+| `npm run format`                         | Prettier (com ordenação de classes Tailwind)       |
+| `npm run seed`                           | Regenera os dados demonstrativos (determinísticos) |
 
 ## Stack
 
-Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito · Tailwind CSS v4 · Poppins · Zustand · lucide-react · Vitest. Nas próximas fases: MapLibre GL, Recharts, TanStack Query, Zod, React Hook Form, `@react-pdf/renderer`, `docx` e Playwright.
+Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito · Tailwind CSS v4 · Poppins · Zod · Zustand · lucide-react · Vitest. Nas próximas fases: MapLibre GL, Recharts, TanStack Query, React Hook Form, `@react-pdf/renderer`, `docx` e Playwright.
 
 ## Documentação
 
 - [Arquitetura](docs/ARCHITECTURE.md): camadas, fluxo de dados e regras de dependência
 - [Decisões (ADR)](docs/DECISIONS.md)
+- [Metodologia](docs/METHODOLOGY.md): UTCI, IVTU, motor prescritivo, simulador e ESG
+- [Dados](docs/DATA.md): o que é demonstrativo e como trocar pelo pipeline real
 - [Identidade visual no código](docs/BRAND.md): tokens, contraste e uso do logotipo
 - [Roadmap](docs/ROADMAP.md): fases do MVP e caminho para o piloto real
 
@@ -41,9 +44,10 @@ Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito ·
 src/
   app/            rotas: landing, (app)/telas, privacidade, api/v1
   components/     brand, layout, ui (e, nas próximas fases, mapa, gráficos e tour)
-  domain/         tipos e regras de negócio puras
-  server/         repositórios (contratos + mock)
+  domain/         modelos puros: UTCI, IVTU, prescrição, simulador, ESG + schemas Zod
+  server/         repositórios (contratos + mock), serviços, gerador de dados demonstrativos
   lib/            config, formatadores pt-BR, i18n, tema, logger
   stores/         estado de cliente (Zustand)
-docs/             arquitetura, ADRs, marca e roadmap
+scripts/          seed-demo-data.ts
+docs/             arquitetura, metodologia, dados, ADRs, marca e roadmap
 ```

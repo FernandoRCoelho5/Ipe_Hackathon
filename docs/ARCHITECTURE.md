@@ -26,16 +26,16 @@
 
 ## Camadas e regras de dependência
 
-| Pasta                      | Responsabilidade                                                      | Pode importar                     |
-| -------------------------- | --------------------------------------------------------------------- | --------------------------------- |
-| `src/domain/`              | Tipos, schemas Zod e regras de negócio **puras** (sem I/O, sem React) | apenas `src/domain`               |
-| `src/server/repositories/` | Contratos de acesso a dados + implementação `mock`                    | `domain`                          |
-| `src/server/services/`     | Orquestração (relatórios, agregações)                                 | `domain`, `repositories`          |
-| `src/app/api/v1/`          | REST: validação Zod, erros padronizados, cache                        | `domain`, `server`                |
-| `src/app/` (páginas)       | Rotas, layouts, metadados                                             | tudo acima + `components`         |
-| `src/components/`          | UI (layout, mapa, gráficos, ui, tour)                                 | `domain` (tipos), `lib`, `stores` |
-| `src/lib/`                 | Config, formatadores, i18n, tema, logger                              | —                                 |
-| `src/stores/`              | Estado de cliente (Zustand)                                           | `domain` (tipos)                  |
+| Pasta                      | Responsabilidade                                                      | Pode importar                          |
+| -------------------------- | --------------------------------------------------------------------- | -------------------------------------- |
+| `src/domain/`              | Tipos, schemas Zod e regras de negócio **puras** (sem I/O, sem React) | `src/domain` e `src/lib/format` (puro) |
+| `src/server/repositories/` | Contratos de acesso a dados + implementação `mock`                    | `domain`                               |
+| `src/server/services/`     | Orquestração (relatórios, agregações)                                 | `domain`, `repositories`               |
+| `src/app/api/v1/`          | REST: validação Zod, erros padronizados, cache                        | `domain`, `server`                     |
+| `src/app/` (páginas)       | Rotas, layouts, metadados                                             | tudo acima + `components`              |
+| `src/components/`          | UI (layout, mapa, gráficos, ui, tour)                                 | `domain` (tipos), `lib`, `stores`      |
+| `src/lib/`                 | Config, formatadores, i18n, tema, logger                              | —                                      |
+| `src/stores/`              | Estado de cliente (Zustand)                                           | `domain` (tipos)                       |
 
 `src/server/repositories/index.ts` importa `server-only`: qualquer tentativa de usar repositórios em um Client Component falha no build.
 

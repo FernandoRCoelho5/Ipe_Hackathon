@@ -8,3 +8,4 @@ playwright-report
 test-results
 /.playwright-mcp
 docs/brand
+src/server/repositories/mock/data

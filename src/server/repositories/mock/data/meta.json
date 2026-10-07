@@ -1,0 +1,13 @@
+{
+  "seed": 20260120,
+  "anchor": "2026-01-20T18:00:00.000Z",
+  "generator": "scripts/seed-demo-data.ts",
+  "counts": {
+    "blocks": 1515,
+    "iotNodes": 10,
+    "iotReadings": 1671,
+    "citizenReports": 240,
+    "adoptions": 8,
+    "alerts": 1
+  }
+}

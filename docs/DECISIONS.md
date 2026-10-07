@@ -67,3 +67,27 @@ Formato curto: contexto → decisão → consequências. Decisões novas entram 
 **Decisão.** Um script inline no `<head>` lê o `localStorage` e define `<html data-theme>`. O Tailwind usa `@custom-variant dark` sobre `data-theme`. Variantes de logo por tema são trocadas via CSS.
 
 **Consequências.** Sem flash e sem erro de hidratação. O `useTheme` sincroniza a interface com `useSyncExternalStore`.
+
+## ADR-009 · Modelo simplificado de UTCI no MVP
+
+**Contexto.** O UTCI operacional é um polinômio de 6ª ordem com mais de 200 coeficientes. Reproduzi-lo sem a tabela oficial arriscaria erros silenciosos com aparência de precisão.
+
+**Decisão.** Usar no domínio um modelo aditivo transparente, ancorado na condição de referência do UTCI (UTCI = Ta com Tmrt = Ta, vento de 0,5 m/s e UR de 50%) e com coeficientes nomeados em `UTCI_MODEL`. No piloto, o backend calcula o UTCI oficial (`pythermalcomfort`) para calibração.
+
+**Consequências.** Valores explicáveis ("por quê") e testáveis. Erro esperado de 1–2 °C frente ao oficial, declarado em `docs/METHODOLOGY.md` e a quantificar no piloto. O contrato de saída não muda quando o modelo oficial entrar.
+
+## ADR-010 · Faixas fixas e limiares calibrados no IVTU
+
+**Contexto.** Com faixas relativas ao conjunto (mín–máx), o mesmo quarteirão mudaria de nota quando outro município fosse adicionado. Com a faixa térmica a partir de UTCI 26 °C, 70% dos quarteirões caíam em "Alto" no verão.
+
+**Decisão.** Normalizar por faixas fixas, com a térmica a partir do estresse forte (UTCI 32 °C), e usar limiares padrão 50/64/72, que deixam cerca de 10–15% dos quarteirões críticos no verão regional. Tudo configurável e validado por schema.
+
+**Consequências.** O índice é comparável entre municípios e anos e discrimina dentro da cidade. A calibração dos limiares é revisada com os dados reais do piloto.
+
+## ADR-011 · Dados demonstrativos determinísticos, ancorados e deslocados no tempo
+
+**Contexto.** A demo precisa ser reproduzível (testes, apresentação) e, ao mesmo tempo, parecer "ao vivo" (relatos recentes, sensores na hora atual).
+
+**Decisão.** Gerar o conjunto com semente fixa e datas relativas a um âncora, versionar os JSONs e deslocá-los para a hora atual na leitura (`createTimeShift`). Um teste falha se os JSONs divergirem do gerador.
+
+**Consequências.** O conteúdo é idêntico em qualquer máquina e as datas são sempre plausíveis. As escritas da demo ficam em memória, guardadas em `globalThis` para sobreviver ao hot reload.

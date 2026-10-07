@@ -1,0 +1,142 @@
+[
+  {
+    "id": "iot-vr-01",
+    "code": "VR-01",
+    "municipalityId": "volta-redonda",
+    "blockId": "vr-0040",
+    "label": "Av. Amaral Peixoto · Vila Santa Cecília",
+    "location": [
+      -44.102809,
+      -22.523906
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-16T18:00:00.000Z"
+  },
+  {
+    "id": "iot-vr-02",
+    "code": "VR-02",
+    "municipalityId": "volta-redonda",
+    "blockId": "vr-0026",
+    "label": "Rua Tiradentes · Vila Santa Cecília",
+    "location": [
+      -44.107415,
+      -22.524902
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-06T18:00:00.000Z"
+  },
+  {
+    "id": "iot-vr-03",
+    "code": "VR-03",
+    "municipalityId": "volta-redonda",
+    "blockId": "vr-0136",
+    "label": "Rua Dom Pedro II · Aterrado",
+    "location": [
+      -44.095706,
+      -22.49807
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-12-01T18:00:00.000Z"
+  },
+  {
+    "id": "iot-vr-04",
+    "code": "VR-04",
+    "municipalityId": "volta-redonda",
+    "blockId": "vr-0167",
+    "label": "Rua das Acácias · Aterrado",
+    "location": [
+      -44.094951,
+      -22.494135
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-24T18:00:00.000Z"
+  },
+  {
+    "id": "iot-bm-01",
+    "code": "BM-01",
+    "municipalityId": "barra-mansa",
+    "blockId": "bm-0029",
+    "label": "Av. Joaquim Leite · Centro",
+    "location": [
+      -44.171403,
+      -22.54939
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-06T18:00:00.000Z"
+  },
+  {
+    "id": "iot-bm-02",
+    "code": "BM-02",
+    "municipalityId": "barra-mansa",
+    "blockId": "bm-0052",
+    "label": "Rua Santos Dumont · Centro",
+    "location": [
+      -44.171596,
+      -22.54565
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-18T18:00:00.000Z"
+  },
+  {
+    "id": "iot-bm-03",
+    "code": "BM-03",
+    "municipalityId": "barra-mansa",
+    "blockId": "bm-0085",
+    "label": "Av. Domingos Mariano · Ano Bom",
+    "location": [
+      -44.179063,
+      -22.529538
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-28T18:00:00.000Z"
+  },
+  {
+    "id": "iot-rs-01",
+    "code": "RS-01",
+    "municipalityId": "resende",
+    "blockId": "rs-0042",
+    "label": "Rua São João · Centro",
+    "location": [
+      -44.446379,
+      -22.471715
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-23T18:00:00.000Z"
+  },
+  {
+    "id": "iot-rs-02",
+    "code": "RS-02",
+    "municipalityId": "resende",
+    "blockId": "rs-0130",
+    "label": "Rua Rio Branco · Campos Elíseos",
+    "location": [
+      -44.429779,
+      -22.444131
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-08T18:00:00.000Z"
+  },
+  {
+    "id": "iot-rs-03",
+    "code": "RS-03",
+    "municipalityId": "resende",
+    "blockId": "rs-0105",
+    "label": "Av. Albino de Almeida · Campos Elíseos",
+    "location": [
+      -44.425911,
+      -22.445243
+    ],
+    "hardware": "ESP32 + SHT31",
+    "connectivity": "wifi",
+    "installedAt": "2025-11-08T18:00:00.000Z"
+  }
+]

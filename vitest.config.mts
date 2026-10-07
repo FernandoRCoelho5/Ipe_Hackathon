@@ -1,9 +1,13 @@
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    alias: { "server-only": fileURLToPath(new URL("./src/test/empty-module.ts", import.meta.url)) },
+  },
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
@@ -11,8 +15,8 @@ export default defineConfig({
     css: false,
     coverage: {
       provider: "v8",
-      include: ["src/domain/**", "src/lib/**"],
-      exclude: ["**/*.test.*", "**/index.ts"],
+      include: ["src/domain/**", "src/lib/**", "src/server/**"],
+      exclude: ["**/*.test.*", "**/test-fixtures.ts", "src/server/repositories/mock/data/**"],
       reporter: ["text", "html"],
     },
   },

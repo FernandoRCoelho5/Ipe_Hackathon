@@ -1,0 +1,32 @@
+[
+  {
+    "municipalityId": "volta-redonda",
+    "date": "2026-01-20",
+    "stationName": "Volta Redonda (referência demonstrativa)",
+    "tMin": 22.8,
+    "tMax": 35.4,
+    "rhAtMin": 0.82,
+    "windMean": 1.6,
+    "solarPeak": 900
+  },
+  {
+    "municipalityId": "barra-mansa",
+    "date": "2026-01-20",
+    "stationName": "Volta Redonda (referência demonstrativa)",
+    "tMin": 23.2,
+    "tMax": 36,
+    "rhAtMin": 0.82,
+    "windMean": 1.6,
+    "solarPeak": 900
+  },
+  {
+    "municipalityId": "resende",
+    "date": "2026-01-20",
+    "stationName": "Resende (referência demonstrativa)",
+    "tMin": 21,
+    "tMax": 34.2,
+    "rhAtMin": 0.82,
+    "windMean": 1.6,
+    "solarPeak": 900
+  }
+]

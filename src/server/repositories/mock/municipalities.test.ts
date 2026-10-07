@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { municipalitySchema } from "@/domain/municipality/types";
 import { mockMunicipalityRepository, MOCK_MUNICIPALITIES } from "./municipalities";
 
 describe("repositório mock de municípios", () => {
@@ -6,6 +7,15 @@ describe("repositório mock de municípios", () => {
     const list = await mockMunicipalityRepository.list();
     expect(list.map((m) => m.name)).toEqual(["Volta Redonda", "Barra Mansa", "Resende"]);
     expect(list.reduce((sum, m) => sum + m.population, 0)).toBe(561_069);
+  });
+
+  it("cadastro válido pelo schema do domínio (escala territorial orientada a dados)", () => {
+    for (const municipality of MOCK_MUNICIPALITIES) {
+      expect(municipalitySchema.safeParse(municipality).success).toBe(true);
+    }
+    expect(
+      municipalitySchema.safeParse({ ...MOCK_MUNICIPALITIES[0], ibgeCode: "123" }).success,
+    ).toBe(false);
   });
 
   it("mantém o centro de cada município dentro do seu bounding box", () => {
