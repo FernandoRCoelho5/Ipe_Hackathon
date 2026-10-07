@@ -88,6 +88,30 @@ Formato curto: contexto → decisão → consequências. Decisões novas entram 
 
 **Contexto.** A demo precisa ser reproduzível (testes, apresentação) e, ao mesmo tempo, parecer "ao vivo" (relatos recentes, sensores na hora atual).
 
-**Decisão.** Gerar o conjunto com semente fixa e datas relativas a um âncora, versionar os JSONs e deslocá-los para a hora atual na leitura (`createTimeShift`). Um teste falha se os JSONs divergirem do gerador.
+**Decisão.** Gerar o conjunto com semente fixa e datas relativas a um âncora, versionar os JSONs e deslocá-los na leitura (`createTimeShift`) em **dias inteiros**, alinhando a data local do âncora à de hoje. O deslocamento por horas foi descartado: tirava as leituras de fase com o ciclo diário (pico de calor de madrugada), o que o teste de calibração sensor × modelo detectou. O gerador produz dados até 23 h depois do âncora e o repositório descarta o futuro. Um teste falha se os JSONs divergirem do gerador.
 
 **Consequências.** O conteúdo é idêntico em qualquer máquina e as datas são sempre plausíveis. As escritas da demo ficam em memória, guardadas em `globalThis` para sobreviver ao hot reload.
+
+## ADR-012 · Contratos da API em Zod como fonte única do OpenAPI
+
+**Contexto.** O OpenAPI precisa servir de contrato para o futuro backend FastAPI. Um YAML escrito à mão diverge do código com o tempo.
+
+**Decisão.** Os DTOs da API v1 são schemas Zod (`src/lib/api/contracts.ts`), usados pelos handlers, pelos testes de contrato (cada resposta real é validada) e pelo gerador `npm run openapi` (`z.toJSONSchema`). Os testes falham se o YAML versionado divergir, se uma rota existir sem documentação ou se um `$ref` não resolver. Asserções de tipo garantem que os DTOs e os tipos do domínio não divergem.
+
+**Consequências.** Contrato, código e documentação ficam sempre alinhados. Mudar um campo exige `npm run openapi`, e o CI acusa o esquecimento.
+
+## ADR-013 · Validar o esquema PostGIS com PGlite nos testes
+
+**Contexto.** Não há Docker no ambiente de desenvolvimento nem no CI padrão. Um `schema.sql` nunca executado é um risco.
+
+**Decisão.** Usar `@electric-sql/pglite` com a extensão PostGIS (PostgreSQL em WASM) como dependência de desenvolvimento. O teste aplica `db/schema.sql` e o seed, verifica contagens, restrições (LGPD, domínios), consultas espaciais e compara o IVTU calculado pela view SQL com o do domínio TypeScript em todos os quarteirões.
+
+**Consequências.** O SQL é exercitado a cada execução do CI, em cerca de 10 s. O PGlite roda PostgreSQL 18 / PostGIS 3.6; o esquema evita recursos posteriores ao PG 16 (alvo do docker-compose), mas a validação final no PostGIS 16 depende de rodar o `docker compose` uma vez.
+
+## ADR-014 · Payload do mapa: gzip na API e UTCI horário separado da geometria
+
+**Contexto.** O Next.js comprime páginas, mas não as respostas de Route Handlers. As camadas do mapa de um município têm cerca de 400 KB, e refazer esse download a cada movimento do slider de horário tornaria o mapa lento.
+
+**Decisão.** Comprimir respostas JSON com gzip no wrapper da API (`CompressionStream`) e criar `GET /thermals/utci-by-hour`, com o UTCI de todos os quarteirões nas 11 horas em cerca de 7 KB comprimidos. A geometria vem uma vez; o slider recolore o mapa no cliente.
+
+**Consequências.** Camadas em cerca de 41 KB e slider instantâneo. Em produção atrás de nginx ou CDN, a compressão pode migrar para o proxy sem mudar o contrato.

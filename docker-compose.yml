@@ -1,0 +1,45 @@
+# Ipê · ambiente local: PostGIS 16 + aplicação web.
+#   docker compose up --build
+# O banco aplica db/schema.sql e o seed demonstrativo na PRIMEIRA inicialização
+# (para recriar: docker compose down -v).
+#
+# A aplicação ainda lê os dados pelo repositório `mock` (DATA_SOURCE=mock).
+# O banco já fica pronto para a implementação `postgis` dos repositórios (ver docs/ROADMAP.md).
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: ipe-db
+    environment:
+      POSTGRES_DB: ipe
+      POSTGRES_USER: ipe
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ipe}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ipe-pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seeds/001_demo_data.sql:/docker-entrypoint-initdb.d/02-demo-data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ipe -d ipe"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  web:
+    build: .
+    container_name: ipe-web
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATA_SOURCE: mock
+      DATABASE_URL: postgres://ipe:${POSTGRES_PASSWORD:-ipe}@db:5432/ipe
+      SESSION_SECRET: ${SESSION_SECRET:-troque-este-segredo-em-producao-0123456789}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+
+volumes:
+  ipe-pgdata:

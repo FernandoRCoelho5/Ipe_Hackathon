@@ -14,7 +14,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build",
-    "seed": "tsx scripts/seed-demo-data.ts"
+    "seed": "tsx scripts/seed-demo-data.ts",
+    "openapi": "tsx scripts/generate-openapi.ts",
+    "db:seed-sql": "tsx scripts/export-sql-seed.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -27,6 +29,8 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-postgis": "^0.2.8",
     "@tailwindcss/turbopack": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
@@ -45,7 +49,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "yaml": "^2.9.1"
   },
   "description": "Ipê – Inteligência Térmica Urbana: WebGIS de suporte à decisão para ilhas de calor e infraestrutura verde.",
   "engines": {

@@ -398,14 +398,16 @@ export function generateIot(
       const bias = rng.normal(0.25, 0.2);
       const offset = localAirTempOffset(block);
       const signalBase = quirk === "weak-signal" ? -99 : rng.range(-78, -58);
-      const lastHour = quirk === "offline" ? 9 : 0;
+      // Leituras de 7 dias antes até 23 h depois do âncora (o repositório corta o futuro).
+      // O nó offline para 18 h antes do âncora: em qualquer hora do dia, está mudo há 3–27 h.
+      const lastHour = quirk === "offline" ? 18 : -23;
       let battery = quirk === "low-battery" ? 41 : rng.range(78, 96);
 
       for (let h = 7 * 24 - 1; h >= lastHour; h--) {
         const ts = anchorMs - h * HOUR;
         const local = new Date(ts - 3 * HOUR);
         const hourOfDay = local.getUTCHours();
-        const dayIndex = 6 - Math.floor(h / 24);
+        const dayIndex = Math.min(6, 6 - Math.floor(h / 24));
         const day = { ...weather, tMax: weather.tMax + dailyTmaxShift[dayIndex] };
         const temperature =
           airTemperatureAt(hourOfDay, day.tMin, day.tMax) + offset + bias + rng.normal(0, 0.35);
@@ -825,7 +827,7 @@ export function generateAlerts(): HeatAlert[] {
       message:
         "Máximas de até 38,4 °C previstas para os próximos 4 dias, com sensação térmica acima de 40 °C nas áreas centrais entre 11h e 16h. Priorize sombra e hidratação em pontos de ônibus, feiras e obras.",
       maxTempC: 38.4,
-      startsAt: iso(anchorMs - 6 * HOUR),
+      startsAt: iso(anchorMs - 30 * HOUR),
       endsAt: iso(anchorMs + 4 * DAY),
       source: "Simulado para demonstração (no piloto: INMET e Defesa Civil)",
     },

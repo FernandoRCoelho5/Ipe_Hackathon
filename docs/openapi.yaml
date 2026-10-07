@@ -1,0 +1,4482 @@
+# Gerado por `npm run openapi` a partir de src/lib/api/contracts.ts — não edite à mão.
+openapi: 3.1.0
+info:
+  title: Ipê · Inteligência Térmica Urbana — API
+  version: 1.0.0
+  description: |-
+    API de suporte à decisão para ilhas de calor e infraestrutura verde.
+
+    **Todas as recomendações são pré-diagnóstico automatizado para subsidiar a análise do profissional responsável.**
+    Nesta versão, os dados são demonstrativos (ver docs/DATA.md).
+
+    Erros seguem o formato `ApiError`. Respostas trazem o cabeçalho `X-Request-Id`.
+    Este contrato é gerado a partir dos schemas Zod em `src/lib/api/contracts.ts` (`npm run openapi`).
+  license:
+    name: Proprietário
+servers:
+  - url: /api/v1
+    description: Next.js (MVP) — o backend FastAPI implementará o mesmo contrato
+tags:
+  - name: Territórios
+  - name: Diagnóstico térmico
+  - name: Prescrição
+  - name: Simulação
+  - name: Ciência cidadã
+  - name: Sensores IoT
+  - name: Adote uma Ilha Verde
+  - name: Relatórios
+paths:
+  /municipalities:
+    get:
+      tags:
+        - Territórios
+      summary: Municípios atendidos
+      description: Centro, bounding box e zoom de cada município. A plataforma escala trocando apenas estes dados.
+      operationId: getMunicipalities
+      responses:
+        "200":
+          description: Lista de municípios
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MunicipalityListResponse"
+        "500":
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /alerts:
+    get:
+      tags:
+        - Territórios
+      summary: Alertas de calor ativos
+      operationId: getAlerts
+      parameters:
+        - name: municipality
+          in: query
+          required: true
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+            pattern: ^[a-z0-9-]+$
+      responses:
+        "200":
+          description: Alertas vigentes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertListResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /thermals/map-layers:
+    get:
+      tags:
+        - Diagnóstico térmico
+      summary: Camadas térmicas do mapa (GeoJSON)
+      description: Quarteirões com LST de satélite, UTCI na hora pedida, UTCI de pico, IVTU e ação recomendada. Toda resposta traz o selo de pré-diagnóstico.
+      operationId: getThermalsMapLayers
+      parameters:
+        - name: municipality
+          in: query
+          required: true
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+            pattern: ^[a-z0-9-]+$
+        - name: hour
+          in: query
+          required: false
+          description: Hora local de 8 a 18 para a sensação térmica.
+          schema:
+            default: 14
+            type: integer
+            minimum: 8
+            maximum: 18
+      responses:
+        "200":
+          description: FeatureCollection de quarteirões
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapLayersResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /thermals/utci-by-hour:
+    get:
+      tags:
+        - Diagnóstico térmico
+      summary: UTCI de 08h a 18h de todos os quarteirões
+      description: "Payload compacto para o slider de horário: o cliente recolore o mapa sem baixar a geometria de novo."
+      operationId: getThermalsUtciByHour
+      parameters:
+        - name: municipality
+          in: query
+          required: true
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+            pattern: ^[a-z0-9-]+$
+      responses:
+        "200":
+          description: UTCI por quarteirão e hora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtciByHourResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /blocks/{id}:
+    get:
+      tags:
+        - Diagnóstico térmico
+      summary: Diagnóstico de um quarteirão
+      description: UTCI, IVTU, drenagem, prescrição com justificativa e curva horária 08h–18h.
+      operationId: getBlocksId
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "Identificador do quarteirão (ex.: vr-0001)"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Diagnóstico completo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockDetailResponse"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /blocks/{id}/checklist:
+    get:
+      tags:
+        - Prescrição
+      summary: Checklist de validação de campo
+      operationId: getBlocksIdChecklist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador do quarteirão
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Checklist e progresso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistResponse"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      tags:
+        - Prescrição
+      summary: Salvar checklist de validação de campo
+      operationId: putBlocksIdChecklist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador do quarteirão
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: object
+                  propertyNames:
+                    type: string
+                    enum:
+                      - fiacao-aerea
+                      - largura-calcada
+                      - recuos
+                      - redes-subterraneas
+                      - acessos-visibilidade
+                      - drenagem-existente
+                      - infiltracao-solo
+                      - estrutura-telhado
+                      - responsavel-tecnico
+                  additionalProperties:
+                    type: string
+                    enum:
+                      - pendente
+                      - conforme
+                      - nao-conforme
+                      - nao-se-aplica
+                notes:
+                  default: ""
+                  type: string
+                  maxLength: 2000
+              required:
+                - items
+      responses:
+        "200":
+          description: Checklist salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /prescriptions/ivtu-ranking:
+    get:
+      tags:
+        - Prescrição
+      summary: Ranking IVTU com ação recomendada
+      description: "`rank` é sempre a posição pelo IVTU no município, qualquer que seja a ordenação escolhida."
+      operationId: getPrescriptionsIvtuRanking
+      parameters:
+        - name: municipality
+          in: query
+          required: true
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+            pattern: ^[a-z0-9-]+$
+        - name: neighborhood
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 80
+        - name: zones
+          in: query
+          required: false
+          description: "Zonas separadas por vírgula: comercial, residencial, misto, industrial, verde."
+          schema:
+            type: string
+        - name: ivtuLevels
+          in: query
+          required: false
+          description: "Níveis IVTU separados por vírgula: baixo, medio, alto, critico."
+          schema:
+            type: string
+        - name: executionLevel
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - tatico
+              - estruturante
+        - name: intervention
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - arborizacao
+              - pavimento-permeavel
+              - telhado-frio
+        - name: search
+          in: query
+          required: false
+          description: Busca por código, logradouro ou bairro.
+          schema:
+            type: string
+            maxLength: 80
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: ivtu
+            type: string
+            enum:
+              - ivtu
+              - utci
+              - priority
+              - code
+        - name: order
+          in: query
+          required: false
+          schema:
+            default: desc
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 9007199254740991
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Página do ranking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RankingResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /simulation/what-if:
+    post:
+      tags:
+        - Simulação
+      summary: Simular intervenções num quarteirão
+      description: Árvores (espécie e quantidade), pavimento permeável e pintura atérmica. O alívio é devolvido como faixa (conservador, central e otimista).
+      operationId: postSimulationWhatIf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blockId:
+                  type: string
+                  minLength: 1
+                trees:
+                  default: []
+                  maxItems: 10
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      speciesId:
+                        type: string
+                        enum:
+                          - ipe-amarelo
+                          - ipe-roxo
+                          - sibipiruna
+                          - pau-ferro
+                          - oiti
+                          - quaresmeira
+                          - aroeira-pimenteira
+                      count:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                    required:
+                      - speciesId
+                      - count
+                permeablePavementShare:
+                  default: 0
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                coolRoofShare:
+                  default: 0
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                horizonYears:
+                  default: 10
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+              required:
+                - blockId
+      responses:
+        "200":
+          description: Resultado da simulação
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhatIfResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /simulation/scenarios:
+    get:
+      tags:
+        - Simulação
+      summary: Cenários de projeto salvos
+      operationId: getSimulationScenarios
+      parameters:
+        - name: municipality
+          in: query
+          required: false
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cenários salvos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedScenarioListResponse"
+    post:
+      tags:
+        - Simulação
+      summary: Salvar cenário de projeto
+      operationId: postSimulationScenarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 80
+                municipalityId:
+                  type: string
+                  minLength: 1
+                scenario:
+                  type: object
+                  properties:
+                    blockId:
+                      type: string
+                      minLength: 1
+                    trees:
+                      default: []
+                      maxItems: 10
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          speciesId:
+                            type: string
+                            enum:
+                              - ipe-amarelo
+                              - ipe-roxo
+                              - sibipiruna
+                              - pau-ferro
+                              - oiti
+                              - quaresmeira
+                              - aroeira-pimenteira
+                          count:
+                            type: integer
+                            minimum: 0
+                            maximum: 300
+                        required:
+                          - speciesId
+                          - count
+                    permeablePavementShare:
+                      default: 0
+                      type: number
+                      minimum: 0
+                      maximum: 1
+                    coolRoofShare:
+                      default: 0
+                      type: number
+                      minimum: 0
+                      maximum: 1
+                    horizonYears:
+                      default: 10
+                      type: integer
+                      minimum: 1
+                      maximum: 20
+                  required:
+                    - blockId
+              required:
+                - name
+                - municipalityId
+                - scenario
+      responses:
+        "201":
+          description: Cenário salvo com resumo congelado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    minLength: 3
+                    maxLength: 80
+                  municipalityId:
+                    type: string
+                    minLength: 1
+                  scenario:
+                    type: object
+                    properties:
+                      blockId:
+                        type: string
+                        minLength: 1
+                      trees:
+                        default: []
+                        maxItems: 10
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            speciesId:
+                              type: string
+                              enum:
+                                - ipe-amarelo
+                                - ipe-roxo
+                                - sibipiruna
+                                - pau-ferro
+                                - oiti
+                                - quaresmeira
+                                - aroeira-pimenteira
+                            count:
+                              type: integer
+                              minimum: 0
+                              maximum: 300
+                          required:
+                            - speciesId
+                            - count
+                          additionalProperties: false
+                      permeablePavementShare:
+                        default: 0
+                        type: number
+                        minimum: 0
+                        maximum: 1
+                      coolRoofShare:
+                        default: 0
+                        type: number
+                        minimum: 0
+                        maximum: 1
+                      horizonYears:
+                        default: 10
+                        type: integer
+                        minimum: 1
+                        maximum: 20
+                    required:
+                      - blockId
+                      - trees
+                      - permeablePavementShare
+                      - coolRoofShare
+                      - horizonYears
+                    additionalProperties: false
+                  id:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+                  summary:
+                    type: object
+                    properties:
+                      blockCode:
+                        type: string
+                      blockLabel:
+                        type: string
+                      peakUtciDelta:
+                        type: number
+                      peakUtciDeltaRange:
+                        type: array
+                        prefixItems:
+                          - type: number
+                          - type: number
+                        items: false
+                        minItems: 2
+                        maxItems: 2
+                      runoffChange:
+                        type: number
+                      evapotranspirationChange:
+                        type: number
+                      plantedTrees:
+                        type: number
+                      permeableAreaM2:
+                        type: number
+                      coolRoofAreaM2:
+                        type: number
+                    required:
+                      - blockCode
+                      - blockLabel
+                      - peakUtciDelta
+                      - peakUtciDeltaRange
+                      - runoffChange
+                      - evapotranspirationChange
+                      - plantedTrees
+                      - permeableAreaM2
+                      - coolRoofAreaM2
+                    additionalProperties: false
+                required:
+                  - name
+                  - municipalityId
+                  - scenario
+                  - id
+                  - createdAt
+                  - summary
+                additionalProperties: false
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /esg/impact:
+    post:
+      tags:
+        - Simulação
+      summary: Calcular retorno ESG
+      operationId: postEsgImpact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                trees:
+                  default: []
+                  maxItems: 20
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      speciesId:
+                        type: string
+                        enum:
+                          - ipe-amarelo
+                          - ipe-roxo
+                          - sibipiruna
+                          - pau-ferro
+                          - oiti
+                          - quaresmeira
+                          - aroeira-pimenteira
+                      count:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                    required:
+                      - speciesId
+                      - count
+                permeableAreaM2:
+                  default: 0
+                  type: number
+                  minimum: 0
+                  maximum: 1000000
+                coolRoofAreaM2:
+                  default: 0
+                  type: number
+                  minimum: 0
+                  maximum: 1000000
+                horizonYears:
+                  default: 10
+                  type: integer
+                  minimum: 1
+                  maximum: 30
+      responses:
+        "200":
+          description: Impacto com premissas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EsgResult"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /citizen-reports:
+    get:
+      tags:
+        - Ciência cidadã
+      summary: Relatos cidadãos anônimos
+      description: "LGPD: apenas texto, coordenadas e categoria. Inclui contagem por status para moderação."
+      operationId: getCitizenReports
+      parameters:
+        - name: municipality
+          in: query
+          required: false
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+            pattern: ^[a-z0-9-]+$
+        - name: statuses
+          in: query
+          required: false
+          description: "Status separados por vírgula: pendente, validado, descartado, spam."
+          schema:
+            type: string
+        - name: categories
+          in: query
+          required: false
+          description: Categorias de relato separadas por vírgula.
+          schema:
+            type: string
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 9007199254740991
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Página de relatos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CitizenReportListResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      tags:
+        - Ciência cidadã
+      summary: Registrar relato
+      operationId: postCitizenReports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                municipalityId:
+                  type: string
+                  minLength: 1
+                location:
+                  type: array
+                  prefixItems:
+                    - type: number
+                      minimum: -180
+                      maximum: 180
+                    - type: number
+                      minimum: -90
+                      maximum: 90
+                  items: false
+                  minItems: 2
+                  maxItems: 2
+                category:
+                  type: string
+                  enum:
+                    - ponto-onibus-sem-sombra
+                    - asfalto-derretendo
+                    - calcada-sem-arvores
+                    - praca-sem-sombra
+                    - calor-equipamento-publico
+                    - alagamento
+                    - arvore-precisa-cuidado
+                text:
+                  type: string
+                  minLength: 5
+                  maxLength: 500
+              required:
+                - municipalityId
+                - location
+                - category
+                - text
+      responses:
+        "201":
+          description: Relato criado (pendente)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  municipalityId:
+                    type: string
+                  blockId:
+                    type:
+                      - string
+                      - "null"
+                  location:
+                    type: array
+                    prefixItems:
+                      - type: number
+                        minimum: -180
+                        maximum: 180
+                      - type: number
+                        minimum: -90
+                        maximum: 90
+                    items: false
+                    minItems: 2
+                    maxItems: 2
+                  category:
+                    type: string
+                    enum:
+                      - ponto-onibus-sem-sombra
+                      - asfalto-derretendo
+                      - calcada-sem-arvores
+                      - praca-sem-sombra
+                      - calor-equipamento-publico
+                      - alagamento
+                      - arvore-precisa-cuidado
+                  text:
+                    type: string
+                    minLength: 1
+                    maxLength: 500
+                  createdAt:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+                  anonId:
+                    type: string
+                    pattern: ^anon-[0-9a-f]{6}$
+                  channel:
+                    type: string
+                    enum:
+                      - whatsapp
+                      - web
+                  spamScore:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  status:
+                    type: string
+                    enum:
+                      - pendente
+                      - validado
+                      - descartado
+                      - spam
+                  hasPhoto:
+                    type: boolean
+                required:
+                  - id
+                  - municipalityId
+                  - blockId
+                  - location
+                  - category
+                  - text
+                  - createdAt
+                  - anonId
+                  - channel
+                  - spamScore
+                  - status
+                  - hasPhoto
+                additionalProperties: false
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /citizen-reports/{id}:
+    patch:
+      tags:
+        - Ciência cidadã
+      summary: Moderar relato
+      operationId: patchCitizenReportsId
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador do relato
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - pendente
+                    - validado
+                    - descartado
+                    - spam
+              required:
+                - status
+      responses:
+        "200":
+          description: Relato atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  municipalityId:
+                    type: string
+                  blockId:
+                    type:
+                      - string
+                      - "null"
+                  location:
+                    type: array
+                    prefixItems:
+                      - type: number
+                        minimum: -180
+                        maximum: 180
+                      - type: number
+                        minimum: -90
+                        maximum: 90
+                    items: false
+                    minItems: 2
+                    maxItems: 2
+                  category:
+                    type: string
+                    enum:
+                      - ponto-onibus-sem-sombra
+                      - asfalto-derretendo
+                      - calcada-sem-arvores
+                      - praca-sem-sombra
+                      - calor-equipamento-publico
+                      - alagamento
+                      - arvore-precisa-cuidado
+                  text:
+                    type: string
+                    minLength: 1
+                    maxLength: 500
+                  createdAt:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+                  anonId:
+                    type: string
+                    pattern: ^anon-[0-9a-f]{6}$
+                  channel:
+                    type: string
+                    enum:
+                      - whatsapp
+                      - web
+                  spamScore:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  status:
+                    type: string
+                    enum:
+                      - pendente
+                      - validado
+                      - descartado
+                      - spam
+                  hasPhoto:
+                    type: boolean
+                required:
+                  - id
+                  - municipalityId
+                  - blockId
+                  - location
+                  - category
+                  - text
+                  - createdAt
+                  - anonId
+                  - channel
+                  - spamScore
+                  - status
+                  - hasPhoto
+                additionalProperties: false
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /iot-nodes:
+    get:
+      tags:
+        - Sensores IoT
+      summary: Nós de calibração
+      operationId: getIotNodes
+      parameters:
+        - name: municipality
+          in: query
+          required: false
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Nós com status e sparkline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IotNodeListResponse"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /iot-nodes/{id}/readings:
+    get:
+      tags:
+        - Sensores IoT
+      summary: Série horária de um nó
+      operationId: getIotNodesIdReadings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "Identificador do nó (ex.: iot-vr-01)"
+          schema:
+            type: string
+        - name: hours
+          in: query
+          required: false
+          description: Janela em horas (1 a 168).
+          schema:
+            default: 24
+            type: integer
+            minimum: 1
+            maximum: 168
+      responses:
+        "200":
+          description: Leituras em ordem cronológica
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IotReadingsResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /iot-nodes/calibration:
+    get:
+      tags:
+        - Sensores IoT
+      summary: Calibração sensor × modelo
+      operationId: getIotNodesCalibration
+      parameters:
+        - name: municipality
+          in: query
+          required: false
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+        - name: hours
+          in: query
+          required: false
+          description: Janela em horas (1 a 168).
+          schema:
+            default: 72
+            type: integer
+            minimum: 1
+            maximum: 168
+      responses:
+        "200":
+          description: Pontos e estatísticas (viés, RMSE, r)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalibrationResponse"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /adoptions:
+    get:
+      tags:
+        - Adote uma Ilha Verde
+      summary: Parcerias de zeladoria
+      operationId: getAdoptions
+      parameters:
+        - name: municipality
+          in: query
+          required: false
+          description: "Identificador do município (ex.: `volta-redonda`)."
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Parcerias com NDVI, ESG e manutenção
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdoptionListResponse"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      tags:
+        - Adote uma Ilha Verde
+      summary: Cadastrar parceria
+      operationId: postAdoptions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                municipalityId:
+                  type: string
+                  minLength: 1
+                blockId:
+                  type: string
+                  minLength: 1
+                partnerName:
+                  type: string
+                  minLength: 3
+                  maxLength: 120
+                partnerType:
+                  type: string
+                  enum:
+                    - industria
+                    - comercio
+                    - construtora
+                    - shopping
+                    - logistica
+                    - servicos
+                trees:
+                  default: []
+                  maxItems: 10
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      speciesId:
+                        type: string
+                        enum:
+                          - ipe-amarelo
+                          - ipe-roxo
+                          - sibipiruna
+                          - pau-ferro
+                          - oiti
+                          - quaresmeira
+                          - aroeira-pimenteira
+                      count:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                    required:
+                      - speciesId
+                      - count
+                permeableAreaM2:
+                  default: 0
+                  type: number
+                  minimum: 0
+                  maximum: 100000
+                coolRoofAreaM2:
+                  default: 0
+                  type: number
+                  minimum: 0
+                  maximum: 100000
+                maintenanceMonths:
+                  default: 24
+                  type: integer
+                  minimum: 6
+                  maximum: 120
+              required:
+                - municipalityId
+                - blockId
+                - partnerName
+                - partnerType
+      responses:
+        "201":
+          description: Parceria criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdoptionSummary"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /adoptions/{id}:
+    get:
+      tags:
+        - Adote uma Ilha Verde
+      summary: Detalhe da parceria
+      operationId: getAdoptionsId
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador da parceria
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Parceria
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdoptionSummary"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /reports/programs:
+    get:
+      tags:
+        - Relatórios
+      summary: Editais e relatórios suportados
+      operationId: getReportsPrograms
+      responses:
+        "200":
+          description: Catálogo de editais
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FundingProgramListResponse"
+  /reports/preview:
+    post:
+      tags:
+        - Relatórios
+      summary: Montar relatório para edital
+      description: Diagnóstico geográfico, justificativa epidemiológica com fontes, impacto socioeconômico (estimativas a validar no piloto) e cenários salvos.
+      operationId: postReportsPreview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                programId:
+                  type: string
+                  enum:
+                    - fundo-clima
+                    - ambiente-resiliente-rj
+                    - fecam
+                    - esg-corporativo
+                municipalityId:
+                  type: string
+                  pattern: ^[a-z0-9-]+$
+                projectName:
+                  type: string
+                  minLength: 5
+                  maxLength: 140
+                department:
+                  type: string
+                  minLength: 3
+                  maxLength: 140
+                estimatedBudget:
+                  type: number
+                  exclusiveMinimum: 0
+                  maximum: 1000000000
+                neighborhoods:
+                  minItems: 1
+                  maxItems: 20
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                scenarioIds:
+                  default: []
+                  maxItems: 10
+                  type: array
+                  items:
+                    type: string
+              required:
+                - programId
+                - municipalityId
+                - projectName
+                - department
+                - estimatedBudget
+                - neighborhoods
+      responses:
+        "200":
+          description: Documento estruturado do relatório
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportDocument"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Recurso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Limite de escritas excedido (30/min por IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - bad_request
+                - unauthorized
+                - forbidden
+                - not_found
+                - conflict
+                - payload_too_large
+                - unsupported_media_type
+                - rate_limited
+                - internal
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - path
+                  - message
+                additionalProperties: false
+            requestId:
+              type: string
+          required:
+            - code
+            - message
+            - requestId
+          additionalProperties: false
+      required:
+        - error
+      additionalProperties: false
+    PageMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        total:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        totalPages:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - page
+        - pageSize
+        - total
+        - totalPages
+      additionalProperties: false
+    DataNotice:
+      type: object
+      properties:
+        demo:
+          type: boolean
+        seal:
+          type: string
+      required:
+        - demo
+        - seal
+      additionalProperties: false
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - arborizacao
+            - pavimento-permeavel
+            - telhado-frio
+        variant:
+          type: string
+          enum:
+            - copa-elevada
+            - copa-ampla
+            - porte-compacto
+            - sombreamento-tatico
+            - jardim-de-chuva
+            - pavimento-drenante
+            - pintura-atermica
+        level:
+          type: string
+          enum:
+            - tatico
+            - estruturante
+        title:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+        rationale:
+          type: array
+          items:
+            type: string
+        potentialSites:
+          type: array
+          items:
+            type: string
+            enum:
+              - canteiros
+              - pracas
+              - recuos
+              - calcadas-largas
+              - faixa-de-servico
+              - vagas-de-estacionamento
+              - estacionamentos
+              - telhados
+        suggestedSpecies:
+          type: array
+          items:
+            type: string
+            enum:
+              - ipe-amarelo
+              - ipe-roxo
+              - sibipiruna
+              - pau-ferro
+              - oiti
+              - quaresmeira
+              - aroeira-pimenteira
+        priority:
+          type: number
+          minimum: 0
+          maximum: 100
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        checklist:
+          type: array
+          items:
+            type: string
+            enum:
+              - fiacao-aerea
+              - largura-calcada
+              - recuos
+              - redes-subterraneas
+              - acessos-visibilidade
+              - drenagem-existente
+              - infiltracao-solo
+              - estrutura-telhado
+              - responsavel-tecnico
+      required:
+        - id
+        - type
+        - variant
+        - level
+        - title
+        - actions
+        - rationale
+        - potentialSites
+        - suggestedSpecies
+        - priority
+        - confidence
+        - checklist
+      additionalProperties: false
+    IvtuResult:
+      type: object
+      properties:
+        score:
+          type: number
+          minimum: 0
+          maximum: 100
+        level:
+          type: string
+          enum:
+            - baixo
+            - medio
+            - alto
+            - critico
+        components:
+          type: object
+          properties:
+            thermal:
+              type: number
+              minimum: 0
+              maximum: 1
+            pedestrian:
+              type: number
+              minimum: 0
+              maximum: 1
+            social:
+              type: number
+              minimum: 0
+              maximum: 1
+          required:
+            - thermal
+            - pedestrian
+            - social
+          additionalProperties: false
+      required:
+        - score
+        - level
+        - components
+      additionalProperties: false
+    BlockDiagnostics:
+      type: object
+      properties:
+        blockId:
+          type: string
+        utciPeak:
+          type: number
+        utciPeakHour:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        stressCategory:
+          type: string
+          enum:
+            - estresse-extremo-calor
+            - estresse-muito-forte-calor
+            - estresse-forte-calor
+            - estresse-moderado-calor
+            - sem-estresse
+            - estresse-leve-frio
+            - estresse-moderado-frio
+            - estresse-forte-frio
+            - estresse-muito-forte-frio
+            - estresse-extremo-frio
+        heatSeverity:
+          anyOf:
+            - type: number
+              const: 0
+            - type: number
+              const: 1
+            - type: number
+              const: 2
+            - type: number
+              const: 3
+            - type: number
+              const: 4
+        airTempPeak:
+          type: number
+        meanRadiantTempPeak:
+          type: number
+        drainageRisk:
+          type: number
+          minimum: 0
+          maximum: 1
+        ivtu:
+          $ref: "#/components/schemas/IvtuResult"
+        prescription:
+          type: object
+          properties:
+            primary:
+              anyOf:
+                - $ref: "#/components/schemas/Recommendation"
+                - type: "null"
+            recommendations:
+              type: array
+              items:
+                $ref: "#/components/schemas/Recommendation"
+          required:
+            - primary
+            - recommendations
+          additionalProperties: false
+      required:
+        - blockId
+        - utciPeak
+        - utciPeakHour
+        - stressCategory
+        - heatSeverity
+        - airTempPeak
+        - meanRadiantTempPeak
+        - drainageRisk
+        - ivtu
+        - prescription
+      additionalProperties: false
+    HourlyConditions:
+      type: object
+      properties:
+        hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+        airTemp:
+          type: number
+        relativeHumidity:
+          type: number
+          minimum: 0
+          maximum: 1
+        windSpeed:
+          type: number
+          minimum: 0
+        solarRadiation:
+          type: number
+          minimum: 0
+        surfaceTemp:
+          type: number
+        meanRadiantTemp:
+          type: number
+        utci:
+          type: number
+        stressCategory:
+          type: string
+          enum:
+            - estresse-extremo-calor
+            - estresse-muito-forte-calor
+            - estresse-forte-calor
+            - estresse-moderado-calor
+            - sem-estresse
+            - estresse-leve-frio
+            - estresse-moderado-frio
+            - estresse-forte-frio
+            - estresse-muito-forte-frio
+            - estresse-extremo-frio
+      required:
+        - hour
+        - airTemp
+        - relativeHumidity
+        - windSpeed
+        - solarRadiation
+        - surfaceTemp
+        - meanRadiantTemp
+        - utci
+        - stressCategory
+      additionalProperties: false
+    SimulationResult:
+      type: object
+      properties:
+        scenario:
+          type: object
+          properties:
+            blockId:
+              type: string
+              minLength: 1
+            trees:
+              default: []
+              maxItems: 10
+              type: array
+              items:
+                type: object
+                properties:
+                  speciesId:
+                    type: string
+                    enum:
+                      - ipe-amarelo
+                      - ipe-roxo
+                      - sibipiruna
+                      - pau-ferro
+                      - oiti
+                      - quaresmeira
+                      - aroeira-pimenteira
+                  count:
+                    type: integer
+                    minimum: 0
+                    maximum: 300
+                required:
+                  - speciesId
+                  - count
+                additionalProperties: false
+            permeablePavementShare:
+              default: 0
+              type: number
+              minimum: 0
+              maximum: 1
+            coolRoofShare:
+              default: 0
+              type: number
+              minimum: 0
+              maximum: 1
+            horizonYears:
+              default: 10
+              type: integer
+              minimum: 1
+              maximum: 20
+          required:
+            - blockId
+            - trees
+            - permeablePavementShare
+            - coolRoofShare
+            - horizonYears
+          additionalProperties: false
+        hourly:
+          type: array
+          items:
+            type: object
+            properties:
+              hour:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+              current:
+                type: number
+              simulated:
+                type: number
+              delta:
+                type: number
+              inPeakWindow:
+                type: boolean
+            required:
+              - hour
+              - current
+              - simulated
+              - delta
+              - inPeakWindow
+            additionalProperties: false
+        peakUtciDelta:
+          type: object
+          properties:
+            central:
+              type: number
+            conservative:
+              type: number
+            optimistic:
+              type: number
+          required:
+            - central
+            - conservative
+            - optimistic
+          additionalProperties: false
+        maxHourlyDelta:
+          type: number
+        baselinePeakUtci:
+          type: number
+        simulatedPeakUtci:
+          type: number
+        evapotranspirationChange:
+          type: number
+        runoffChange:
+          type: number
+        retainedVolumeM3PerYear:
+          type: number
+        surfaceTempDelta:
+          type: number
+        canopyCover:
+          type: object
+          properties:
+            before:
+              type: number
+            after:
+              type: number
+          required:
+            - before
+            - after
+          additionalProperties: false
+        streetCanopy:
+          type: object
+          properties:
+            before:
+              type: number
+            after:
+              type: number
+          required:
+            - before
+            - after
+          additionalProperties: false
+        addedCanopyM2:
+          type: number
+        plantingCapacity:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        plantedTrees:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        permeableAreaM2:
+          type: number
+        coolRoofAreaM2:
+          type: number
+        warnings:
+          type: array
+          items:
+            type: string
+      required:
+        - scenario
+        - hourly
+        - peakUtciDelta
+        - maxHourlyDelta
+        - baselinePeakUtci
+        - simulatedPeakUtci
+        - evapotranspirationChange
+        - runoffChange
+        - retainedVolumeM3PerYear
+        - surfaceTempDelta
+        - canopyCover
+        - streetCanopy
+        - addedCanopyM2
+        - plantingCapacity
+        - plantedTrees
+        - permeableAreaM2
+        - coolRoofAreaM2
+        - warnings
+      additionalProperties: false
+    EsgResult:
+      type: object
+      properties:
+        treesPlanted:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        survivingTrees:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        greenAreaM2:
+          type: number
+        co2SequesteredKg:
+          type: number
+        co2PerYearAtMaturityKg:
+          type: number
+        runoffAvoidedM3PerYear:
+          type: number
+        permeableAreaM2:
+          type: number
+        coolRoofAreaM2:
+          type: number
+        horizonYears:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        premises:
+          type: array
+          items:
+            type: string
+      required:
+        - treesPlanted
+        - survivingTrees
+        - greenAreaM2
+        - co2SequesteredKg
+        - co2PerYearAtMaturityKg
+        - runoffAvoidedM3PerYear
+        - permeableAreaM2
+        - coolRoofAreaM2
+        - horizonYears
+        - premises
+      additionalProperties: false
+    Municipality:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z0-9-]+$
+        name:
+          type: string
+        state:
+          type: string
+          minLength: 2
+          maxLength: 2
+        ibgeCode:
+          type: string
+          pattern: ^\d{7}$
+        population:
+          type: integer
+          exclusiveMinimum: 0
+          maximum: 9007199254740991
+        populationYear:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        center:
+          type: array
+          prefixItems:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: number
+              minimum: -90
+              maximum: 90
+          items: false
+          minItems: 2
+          maxItems: 2
+        bbox:
+          type: array
+          prefixItems:
+            - type: number
+            - type: number
+            - type: number
+            - type: number
+          items: false
+          minItems: 4
+          maxItems: 4
+        defaultZoom:
+          type: number
+          minimum: 1
+          maximum: 20
+      required:
+        - id
+        - name
+        - state
+        - ibgeCode
+        - population
+        - populationYear
+        - center
+        - bbox
+        - defaultZoom
+      additionalProperties: false
+    MunicipalityListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Municipality"
+      required:
+        - data
+      additionalProperties: false
+    HeatAlert:
+      type: object
+      properties:
+        id:
+          type: string
+        municipalityIds:
+          minItems: 1
+          type: array
+          items:
+            type: string
+        level:
+          type: string
+          enum:
+            - atencao
+            - alerta
+            - emergencia
+        title:
+          type: string
+        message:
+          type: string
+        maxTempC:
+          type: number
+        startsAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        endsAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        source:
+          type: string
+      required:
+        - id
+        - municipalityIds
+        - level
+        - title
+        - message
+        - maxTempC
+        - startsAt
+        - endsAt
+        - source
+      additionalProperties: false
+    AlertListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeatAlert"
+      required:
+        - data
+      additionalProperties: false
+    BlockFeatureProperties:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        neighborhood:
+          type: string
+        street:
+          type: string
+        zone:
+          type: string
+          enum:
+            - comercial
+            - residencial
+            - misto
+            - industrial
+            - verde
+        lstC:
+          type: number
+        utci:
+          type: number
+        stressCategory:
+          type: string
+          enum:
+            - estresse-extremo-calor
+            - estresse-muito-forte-calor
+            - estresse-forte-calor
+            - estresse-moderado-calor
+            - sem-estresse
+            - estresse-leve-frio
+            - estresse-moderado-frio
+            - estresse-forte-frio
+            - estresse-muito-forte-frio
+            - estresse-extremo-frio
+        utciPeak:
+          type: number
+        ivtu:
+          type: number
+        ivtuLevel:
+          type: string
+          enum:
+            - baixo
+            - medio
+            - alto
+            - critico
+        canopyCover:
+          type: number
+        imperviousness:
+          type: number
+        drainageRisk:
+          type: number
+        pedestrianFlow:
+          type: number
+        recommendation:
+          anyOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - arborizacao
+                    - pavimento-permeavel
+                    - telhado-frio
+                variant:
+                  type: string
+                  enum:
+                    - copa-elevada
+                    - copa-ampla
+                    - porte-compacto
+                    - sombreamento-tatico
+                    - jardim-de-chuva
+                    - pavimento-drenante
+                    - pintura-atermica
+                level:
+                  type: string
+                  enum:
+                    - tatico
+                    - estruturante
+                title:
+                  type: string
+              required:
+                - type
+                - variant
+                - level
+                - title
+              additionalProperties: false
+            - type: "null"
+      required:
+        - id
+        - code
+        - neighborhood
+        - street
+        - zone
+        - lstC
+        - utci
+        - stressCategory
+        - utciPeak
+        - ivtu
+        - ivtuLevel
+        - canopyCover
+        - imperviousness
+        - drainageRisk
+        - pedestrianFlow
+        - recommendation
+      additionalProperties: false
+    DailyWeather:
+      type: object
+      properties:
+        municipalityId:
+          type: string
+        date:
+          type: string
+        stationName:
+          type: string
+        tMin:
+          type: number
+          minimum: -10
+          maximum: 40
+        tMax:
+          type: number
+          minimum: 0
+          maximum: 50
+        rhAtMin:
+          type: number
+          minimum: 0.1
+          maximum: 1
+        windMean:
+          type: number
+          minimum: 0
+          maximum: 20
+        solarPeak:
+          type: number
+          minimum: 0
+          maximum: 1200
+      required:
+        - municipalityId
+        - date
+        - stationName
+        - tMin
+        - tMax
+        - rhAtMin
+        - windMean
+        - solarPeak
+      additionalProperties: false
+    MapLayersResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          const: FeatureCollection
+        features:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                const: Feature
+              id:
+                type: string
+              geometry:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: Polygon
+                  coordinates:
+                    minItems: 1
+                    type: array
+                    items:
+                      minItems: 4
+                      type: array
+                      items:
+                        type: array
+                        prefixItems:
+                          - type: number
+                            minimum: -180
+                            maximum: 180
+                          - type: number
+                            minimum: -90
+                            maximum: 90
+                        items: false
+                        minItems: 2
+                        maxItems: 2
+                required:
+                  - type
+                  - coordinates
+                additionalProperties: false
+              properties:
+                $ref: "#/components/schemas/BlockFeatureProperties"
+            required:
+              - type
+              - id
+              - geometry
+              - properties
+            additionalProperties: false
+        meta:
+          type: object
+          properties:
+            municipalityId:
+              type: string
+            hour:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            weather:
+              $ref: "#/components/schemas/DailyWeather"
+            ranges:
+              type: object
+              properties:
+                lstC:
+                  type: array
+                  prefixItems:
+                    - type: number
+                    - type: number
+                  items: false
+                  minItems: 2
+                  maxItems: 2
+                utci:
+                  type: array
+                  prefixItems:
+                    - type: number
+                    - type: number
+                  items: false
+                  minItems: 2
+                  maxItems: 2
+              required:
+                - lstC
+                - utci
+              additionalProperties: false
+            notice:
+              $ref: "#/components/schemas/DataNotice"
+          required:
+            - municipalityId
+            - hour
+            - weather
+            - ranges
+            - notice
+          additionalProperties: false
+      required:
+        - type
+        - features
+        - meta
+      additionalProperties: false
+    UtciByHourResponse:
+      type: object
+      properties:
+        municipalityId:
+          type: string
+        hours:
+          type: array
+          items:
+            type: integer
+            minimum: -9007199254740991
+            maximum: 9007199254740991
+        values:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties:
+            type: array
+            items:
+              type: number
+        notice:
+          $ref: "#/components/schemas/DataNotice"
+      required:
+        - municipalityId
+        - hours
+        - values
+        - notice
+      additionalProperties: false
+    Block:
+      type: object
+      properties:
+        id:
+          type: string
+        municipalityId:
+          type: string
+        code:
+          type: string
+        neighborhood:
+          type: string
+        street:
+          type: string
+        zone:
+          type: string
+          enum:
+            - comercial
+            - residencial
+            - misto
+            - industrial
+            - verde
+        geometry:
+          type: object
+          properties:
+            type:
+              type: string
+              const: Polygon
+            coordinates:
+              minItems: 1
+              type: array
+              items:
+                minItems: 4
+                type: array
+                items:
+                  type: array
+                  prefixItems:
+                    - type: number
+                      minimum: -180
+                      maximum: 180
+                    - type: number
+                      minimum: -90
+                      maximum: 90
+                  items: false
+                  minItems: 2
+                  maxItems: 2
+          required:
+            - type
+            - coordinates
+          additionalProperties: false
+        centroid:
+          type: array
+          prefixItems:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: number
+              minimum: -90
+              maximum: 90
+          items: false
+          minItems: 2
+          maxItems: 2
+        areaM2:
+          type: number
+          exclusiveMinimum: 0
+        perimeterM:
+          type: number
+          exclusiveMinimum: 0
+        lstC:
+          type: number
+          minimum: 10
+          maximum: 75
+        ndvi:
+          type: number
+          minimum: -0.2
+          maximum: 1
+        canopyCover:
+          type: number
+          minimum: 0
+          maximum: 1
+        streetCanopy:
+          type: number
+          minimum: 0
+          maximum: 1
+        buildingShade:
+          type: number
+          minimum: 0
+          maximum: 1
+        imperviousness:
+          type: number
+          minimum: 0
+          maximum: 1
+        roofMetalShare:
+          type: number
+          minimum: 0
+          maximum: 1
+        roofAreaM2:
+          type: number
+          minimum: 0
+        freeSoilShare:
+          type: number
+          minimum: 0
+          maximum: 1
+        sidewalkWidthM:
+          type: number
+          minimum: 0
+          maximum: 15
+        windExposure:
+          type: number
+          minimum: 0.2
+          maximum: 1.3
+        distanceToRiverM:
+          type: number
+          minimum: 0
+        slopePct:
+          type: number
+          minimum: 0
+          maximum: 60
+        pedestrianFlow:
+          type: number
+          minimum: 0
+        population:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        densityPerKm2:
+          type: number
+          minimum: 0
+        elderlyShare:
+          type: number
+          minimum: 0
+          maximum: 1
+        incomePerCapita:
+          type: number
+          minimum: 0
+      required:
+        - id
+        - municipalityId
+        - code
+        - neighborhood
+        - street
+        - zone
+        - geometry
+        - centroid
+        - areaM2
+        - perimeterM
+        - lstC
+        - ndvi
+        - canopyCover
+        - streetCanopy
+        - buildingShade
+        - imperviousness
+        - roofMetalShare
+        - roofAreaM2
+        - freeSoilShare
+        - sidewalkWidthM
+        - windExposure
+        - distanceToRiverM
+        - slopePct
+        - pedestrianFlow
+        - population
+        - densityPerKm2
+        - elderlyShare
+        - incomePerCapita
+      additionalProperties: false
+    BlockDetailResponse:
+      type: object
+      properties:
+        block:
+          $ref: "#/components/schemas/Block"
+        diagnostics:
+          $ref: "#/components/schemas/BlockDiagnostics"
+        hourly:
+          type: array
+          items:
+            $ref: "#/components/schemas/HourlyConditions"
+        weather:
+          type: object
+          properties:
+            municipalityId:
+              type: string
+            date:
+              type: string
+            stationName:
+              type: string
+            tMin:
+              type: number
+              minimum: -10
+              maximum: 40
+            tMax:
+              type: number
+              minimum: 0
+              maximum: 50
+            rhAtMin:
+              type: number
+              minimum: 0.1
+              maximum: 1
+            windMean:
+              type: number
+              minimum: 0
+              maximum: 20
+            solarPeak:
+              type: number
+              minimum: 0
+              maximum: 1200
+          required:
+            - municipalityId
+            - date
+            - stationName
+            - tMin
+            - tMax
+            - rhAtMin
+            - windMean
+            - solarPeak
+          additionalProperties: false
+        notice:
+          $ref: "#/components/schemas/DataNotice"
+      required:
+        - block
+        - diagnostics
+        - hourly
+        - weather
+        - notice
+      additionalProperties: false
+    FieldChecklist:
+      type: object
+      properties:
+        blockId:
+          type: string
+          minLength: 1
+        items:
+          type: object
+          propertyNames:
+            type: string
+            enum:
+              - fiacao-aerea
+              - largura-calcada
+              - recuos
+              - redes-subterraneas
+              - acessos-visibilidade
+              - drenagem-existente
+              - infiltracao-solo
+              - estrutura-telhado
+              - responsavel-tecnico
+          additionalProperties:
+            type: string
+            enum:
+              - pendente
+              - conforme
+              - nao-conforme
+              - nao-se-aplica
+        notes:
+          default: ""
+          type: string
+          maxLength: 2000
+        updatedAt:
+          type: string
+      required:
+        - blockId
+        - items
+        - notes
+      additionalProperties: false
+    ChecklistResponse:
+      type: object
+      properties:
+        checklist:
+          $ref: "#/components/schemas/FieldChecklist"
+        applicable:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                enum:
+                  - fiacao-aerea
+                  - largura-calcada
+                  - recuos
+                  - redes-subterraneas
+                  - acessos-visibilidade
+                  - drenagem-existente
+                  - infiltracao-solo
+                  - estrutura-telhado
+                  - responsavel-tecnico
+              label:
+                type: string
+            required:
+              - id
+              - label
+            additionalProperties: false
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+      required:
+        - checklist
+        - applicable
+        - progress
+      additionalProperties: false
+    ChecklistUpdate:
+      type: object
+      properties:
+        items:
+          type: object
+          propertyNames:
+            type: string
+            enum:
+              - fiacao-aerea
+              - largura-calcada
+              - recuos
+              - redes-subterraneas
+              - acessos-visibilidade
+              - drenagem-existente
+              - infiltracao-solo
+              - estrutura-telhado
+              - responsavel-tecnico
+          additionalProperties:
+            type: string
+            enum:
+              - pendente
+              - conforme
+              - nao-conforme
+              - nao-se-aplica
+        notes:
+          default: ""
+          type: string
+          maxLength: 2000
+      required:
+        - items
+        - notes
+      additionalProperties: false
+    RankingRow:
+      type: object
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        id:
+          type: string
+        code:
+          type: string
+        neighborhood:
+          type: string
+        street:
+          type: string
+        zone:
+          type: string
+          enum:
+            - comercial
+            - residencial
+            - misto
+            - industrial
+            - verde
+        centroid:
+          type: array
+          prefixItems:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: number
+              minimum: -90
+              maximum: 90
+          items: false
+          minItems: 2
+          maxItems: 2
+        ivtu:
+          type: number
+        ivtuLevel:
+          type: string
+          enum:
+            - baixo
+            - medio
+            - alto
+            - critico
+        utciPeak:
+          type: number
+        stressCategory:
+          type: string
+          enum:
+            - estresse-extremo-calor
+            - estresse-muito-forte-calor
+            - estresse-forte-calor
+            - estresse-moderado-calor
+            - sem-estresse
+            - estresse-leve-frio
+            - estresse-moderado-frio
+            - estresse-forte-frio
+            - estresse-muito-forte-frio
+            - estresse-extremo-frio
+        drainageRisk:
+          type: number
+        canopyCover:
+          type: number
+        pedestrianFlow:
+          type: number
+        recommendation:
+          anyOf:
+            - type: object
+              properties:
+                id:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                    - arborizacao
+                    - pavimento-permeavel
+                    - telhado-frio
+                variant:
+                  type: string
+                  enum:
+                    - copa-elevada
+                    - copa-ampla
+                    - porte-compacto
+                    - sombreamento-tatico
+                    - jardim-de-chuva
+                    - pavimento-drenante
+                    - pintura-atermica
+                level:
+                  type: string
+                  enum:
+                    - tatico
+                    - estruturante
+                title:
+                  type: string
+                priority:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                confidence:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+              required:
+                - id
+                - type
+                - variant
+                - level
+                - title
+                - priority
+                - confidence
+              additionalProperties: false
+            - type: "null"
+        additionalRecommendations:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - rank
+        - id
+        - code
+        - neighborhood
+        - street
+        - zone
+        - centroid
+        - ivtu
+        - ivtuLevel
+        - utciPeak
+        - stressCategory
+        - drainageRisk
+        - canopyCover
+        - pedestrianFlow
+        - recommendation
+        - additionalRecommendations
+      additionalProperties: false
+    RankingResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RankingRow"
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              minimum: 1
+              maximum: 9007199254740991
+            pageSize:
+              type: integer
+              minimum: 1
+              maximum: 9007199254740991
+            total:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            totalPages:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            neighborhoods:
+              type: array
+              items:
+                type: string
+            levelCounts:
+              type: object
+              propertyNames:
+                type: string
+                enum:
+                  - baixo
+                  - medio
+                  - alto
+                  - critico
+              additionalProperties:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+              required:
+                - baixo
+                - medio
+                - alto
+                - critico
+            notice:
+              $ref: "#/components/schemas/DataNotice"
+          required:
+            - page
+            - pageSize
+            - total
+            - totalPages
+            - neighborhoods
+            - levelCounts
+            - notice
+          additionalProperties: false
+      required:
+        - data
+        - meta
+      additionalProperties: false
+    SimulationScenario:
+      type: object
+      properties:
+        blockId:
+          type: string
+          minLength: 1
+        trees:
+          default: []
+          maxItems: 10
+          type: array
+          items:
+            type: object
+            properties:
+              speciesId:
+                type: string
+                enum:
+                  - ipe-amarelo
+                  - ipe-roxo
+                  - sibipiruna
+                  - pau-ferro
+                  - oiti
+                  - quaresmeira
+                  - aroeira-pimenteira
+              count:
+                type: integer
+                minimum: 0
+                maximum: 300
+            required:
+              - speciesId
+              - count
+            additionalProperties: false
+        permeablePavementShare:
+          default: 0
+          type: number
+          minimum: 0
+          maximum: 1
+        coolRoofShare:
+          default: 0
+          type: number
+          minimum: 0
+          maximum: 1
+        horizonYears:
+          default: 10
+          type: integer
+          minimum: 1
+          maximum: 20
+      required:
+        - blockId
+        - trees
+        - permeablePavementShare
+        - coolRoofShare
+        - horizonYears
+      additionalProperties: false
+    WhatIfResponse:
+      type: object
+      properties:
+        block:
+          type: object
+          properties:
+            id:
+              type: string
+            code:
+              type: string
+            street:
+              type: string
+            neighborhood:
+              type: string
+          required:
+            - id
+            - code
+            - street
+            - neighborhood
+          additionalProperties: false
+        result:
+          $ref: "#/components/schemas/SimulationResult"
+        notice:
+          $ref: "#/components/schemas/DataNotice"
+      required:
+        - block
+        - result
+        - notice
+      additionalProperties: false
+    SaveScenarioRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 80
+        municipalityId:
+          type: string
+          minLength: 1
+        scenario:
+          type: object
+          properties:
+            blockId:
+              type: string
+              minLength: 1
+            trees:
+              default: []
+              maxItems: 10
+              type: array
+              items:
+                type: object
+                properties:
+                  speciesId:
+                    type: string
+                    enum:
+                      - ipe-amarelo
+                      - ipe-roxo
+                      - sibipiruna
+                      - pau-ferro
+                      - oiti
+                      - quaresmeira
+                      - aroeira-pimenteira
+                  count:
+                    type: integer
+                    minimum: 0
+                    maximum: 300
+                required:
+                  - speciesId
+                  - count
+                additionalProperties: false
+            permeablePavementShare:
+              default: 0
+              type: number
+              minimum: 0
+              maximum: 1
+            coolRoofShare:
+              default: 0
+              type: number
+              minimum: 0
+              maximum: 1
+            horizonYears:
+              default: 10
+              type: integer
+              minimum: 1
+              maximum: 20
+          required:
+            - blockId
+            - trees
+            - permeablePavementShare
+            - coolRoofShare
+            - horizonYears
+          additionalProperties: false
+      required:
+        - name
+        - municipalityId
+        - scenario
+      additionalProperties: false
+    SavedScenario:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 80
+        municipalityId:
+          type: string
+          minLength: 1
+        scenario:
+          type: object
+          properties:
+            blockId:
+              type: string
+              minLength: 1
+            trees:
+              default: []
+              maxItems: 10
+              type: array
+              items:
+                type: object
+                properties:
+                  speciesId:
+                    type: string
+                    enum:
+                      - ipe-amarelo
+                      - ipe-roxo
+                      - sibipiruna
+                      - pau-ferro
+                      - oiti
+                      - quaresmeira
+                      - aroeira-pimenteira
+                  count:
+                    type: integer
+                    minimum: 0
+                    maximum: 300
+                required:
+                  - speciesId
+                  - count
+                additionalProperties: false
+            permeablePavementShare:
+              default: 0
+              type: number
+              minimum: 0
+              maximum: 1
+            coolRoofShare:
+              default: 0
+              type: number
+              minimum: 0
+              maximum: 1
+            horizonYears:
+              default: 10
+              type: integer
+              minimum: 1
+              maximum: 20
+          required:
+            - blockId
+            - trees
+            - permeablePavementShare
+            - coolRoofShare
+            - horizonYears
+          additionalProperties: false
+        id:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        summary:
+          type: object
+          properties:
+            blockCode:
+              type: string
+            blockLabel:
+              type: string
+            peakUtciDelta:
+              type: number
+            peakUtciDeltaRange:
+              type: array
+              prefixItems:
+                - type: number
+                - type: number
+              items: false
+              minItems: 2
+              maxItems: 2
+            runoffChange:
+              type: number
+            evapotranspirationChange:
+              type: number
+            plantedTrees:
+              type: number
+            permeableAreaM2:
+              type: number
+            coolRoofAreaM2:
+              type: number
+          required:
+            - blockCode
+            - blockLabel
+            - peakUtciDelta
+            - peakUtciDeltaRange
+            - runoffChange
+            - evapotranspirationChange
+            - plantedTrees
+            - permeableAreaM2
+            - coolRoofAreaM2
+          additionalProperties: false
+      required:
+        - name
+        - municipalityId
+        - scenario
+        - id
+        - createdAt
+        - summary
+      additionalProperties: false
+    SavedScenarioListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SavedScenario"
+      required:
+        - data
+      additionalProperties: false
+    EsgInput:
+      type: object
+      properties:
+        trees:
+          default: []
+          maxItems: 20
+          type: array
+          items:
+            type: object
+            properties:
+              speciesId:
+                type: string
+                enum:
+                  - ipe-amarelo
+                  - ipe-roxo
+                  - sibipiruna
+                  - pau-ferro
+                  - oiti
+                  - quaresmeira
+                  - aroeira-pimenteira
+              count:
+                type: integer
+                minimum: 0
+                maximum: 300
+            required:
+              - speciesId
+              - count
+            additionalProperties: false
+        permeableAreaM2:
+          default: 0
+          type: number
+          minimum: 0
+          maximum: 1000000
+        coolRoofAreaM2:
+          default: 0
+          type: number
+          minimum: 0
+          maximum: 1000000
+        horizonYears:
+          default: 10
+          type: integer
+          minimum: 1
+          maximum: 30
+      required:
+        - trees
+        - permeableAreaM2
+        - coolRoofAreaM2
+        - horizonYears
+      additionalProperties: false
+    CitizenReport:
+      type: object
+      properties:
+        id:
+          type: string
+        municipalityId:
+          type: string
+        blockId:
+          type:
+            - string
+            - "null"
+        location:
+          type: array
+          prefixItems:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: number
+              minimum: -90
+              maximum: 90
+          items: false
+          minItems: 2
+          maxItems: 2
+        category:
+          type: string
+          enum:
+            - ponto-onibus-sem-sombra
+            - asfalto-derretendo
+            - calcada-sem-arvores
+            - praca-sem-sombra
+            - calor-equipamento-publico
+            - alagamento
+            - arvore-precisa-cuidado
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+        createdAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        anonId:
+          type: string
+          pattern: ^anon-[0-9a-f]{6}$
+        channel:
+          type: string
+          enum:
+            - whatsapp
+            - web
+        spamScore:
+          type: number
+          minimum: 0
+          maximum: 1
+        status:
+          type: string
+          enum:
+            - pendente
+            - validado
+            - descartado
+            - spam
+        hasPhoto:
+          type: boolean
+      required:
+        - id
+        - municipalityId
+        - blockId
+        - location
+        - category
+        - text
+        - createdAt
+        - anonId
+        - channel
+        - spamScore
+        - status
+        - hasPhoto
+      additionalProperties: false
+    CitizenReportListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CitizenReport"
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              minimum: 1
+              maximum: 9007199254740991
+            pageSize:
+              type: integer
+              minimum: 1
+              maximum: 9007199254740991
+            total:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            totalPages:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            statusCounts:
+              type: object
+              propertyNames:
+                type: string
+                enum:
+                  - pendente
+                  - validado
+                  - descartado
+                  - spam
+              additionalProperties:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+              required:
+                - pendente
+                - validado
+                - descartado
+                - spam
+          required:
+            - page
+            - pageSize
+            - total
+            - totalPages
+            - statusCounts
+          additionalProperties: false
+      required:
+        - data
+        - meta
+      additionalProperties: false
+    NewCitizenReport:
+      type: object
+      properties:
+        municipalityId:
+          type: string
+          minLength: 1
+        location:
+          type: array
+          prefixItems:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: number
+              minimum: -90
+              maximum: 90
+          items: false
+          minItems: 2
+          maxItems: 2
+        category:
+          type: string
+          enum:
+            - ponto-onibus-sem-sombra
+            - asfalto-derretendo
+            - calcada-sem-arvores
+            - praca-sem-sombra
+            - calor-equipamento-publico
+            - alagamento
+            - arvore-precisa-cuidado
+        text:
+          type: string
+          minLength: 5
+          maxLength: 500
+      required:
+        - municipalityId
+        - location
+        - category
+        - text
+      additionalProperties: false
+    CitizenReportStatusUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - pendente
+            - validado
+            - descartado
+            - spam
+      required:
+        - status
+      additionalProperties: false
+    IotNode:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        municipalityId:
+          type: string
+        blockId:
+          type: string
+        label:
+          type: string
+        location:
+          type: array
+          prefixItems:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: number
+              minimum: -90
+              maximum: 90
+          items: false
+          minItems: 2
+          maxItems: 2
+        hardware:
+          type: string
+        connectivity:
+          type: string
+          enum:
+            - wifi
+            - 4g
+        installedAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      required:
+        - id
+        - code
+        - municipalityId
+        - blockId
+        - label
+        - location
+        - hardware
+        - connectivity
+        - installedAt
+      additionalProperties: false
+    IotReading:
+      type: object
+      properties:
+        nodeId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        temperatureC:
+          type: number
+          minimum: -10
+          maximum: 60
+        humidity:
+          type: number
+          minimum: 0
+          maximum: 1
+        batteryPct:
+          type: number
+          minimum: 0
+          maximum: 100
+        signalDbm:
+          type: number
+          minimum: -120
+          maximum: 0
+      required:
+        - nodeId
+        - timestamp
+        - temperatureC
+        - humidity
+        - batteryPct
+        - signalDbm
+      additionalProperties: false
+    IotNodeSummary:
+      type: object
+      properties:
+        node:
+          $ref: "#/components/schemas/IotNode"
+        status:
+          type: string
+          enum:
+            - online
+            - bateria-baixa
+            - sinal-fraco
+            - offline
+        latest:
+          anyOf:
+            - $ref: "#/components/schemas/IotReading"
+            - type: "null"
+        sparkline:
+          type: array
+          items:
+            type: number
+      required:
+        - node
+        - status
+        - latest
+        - sparkline
+      additionalProperties: false
+    IotNodeListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/IotNodeSummary"
+      required:
+        - data
+      additionalProperties: false
+    IotReadingsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              nodeId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+              temperatureC:
+                type: number
+                minimum: -10
+                maximum: 60
+              humidity:
+                type: number
+                minimum: 0
+                maximum: 1
+              batteryPct:
+                type: number
+                minimum: 0
+                maximum: 100
+              signalDbm:
+                type: number
+                minimum: -120
+                maximum: 0
+            required:
+              - nodeId
+              - timestamp
+              - temperatureC
+              - humidity
+              - batteryPct
+              - signalDbm
+            additionalProperties: false
+      required:
+        - data
+      additionalProperties: false
+    CalibrationResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              nodeId:
+                type: string
+              nodeCode:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+              sensorTempC:
+                type: number
+              modelAirTempC:
+                type: number
+              modelUtci:
+                type: number
+              satelliteLstC:
+                type: number
+            required:
+              - nodeId
+              - nodeCode
+              - timestamp
+              - sensorTempC
+              - modelAirTempC
+              - modelUtci
+              - satelliteLstC
+            additionalProperties: false
+        stats:
+          type: object
+          properties:
+            points:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            bias:
+              type: number
+            rmse:
+              type: number
+            pearson:
+              type: number
+          required:
+            - points
+            - bias
+            - rmse
+            - pearson
+          additionalProperties: false
+      required:
+        - data
+        - stats
+      additionalProperties: false
+    Adoption:
+      type: object
+      properties:
+        id:
+          type: string
+        municipalityId:
+          type: string
+        blockId:
+          type: string
+        areaName:
+          type: string
+        partnerName:
+          type: string
+        partnerType:
+          type: string
+          enum:
+            - industria
+            - comercio
+            - construtora
+            - shopping
+            - logistica
+            - servicos
+        status:
+          type: string
+          enum:
+            - ativa
+            - em-implantacao
+        adoptedAt:
+          type: string
+          format: date
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+        commitments:
+          type: object
+          properties:
+            trees:
+              type: array
+              items:
+                type: object
+                properties:
+                  speciesId:
+                    type: string
+                    enum:
+                      - ipe-amarelo
+                      - ipe-roxo
+                      - sibipiruna
+                      - pau-ferro
+                      - oiti
+                      - quaresmeira
+                      - aroeira-pimenteira
+                  count:
+                    type: integer
+                    minimum: 0
+                    maximum: 300
+                required:
+                  - speciesId
+                  - count
+                additionalProperties: false
+            permeableAreaM2:
+              type: number
+              minimum: 0
+            coolRoofAreaM2:
+              type: number
+              minimum: 0
+            maintenanceMonths:
+              type: integer
+              minimum: 1
+              maximum: 120
+          required:
+            - trees
+            - permeableAreaM2
+            - coolRoofAreaM2
+            - maintenanceMonths
+          additionalProperties: false
+        ndviSeries:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+              ndvi:
+                type: number
+                minimum: -0.2
+                maximum: 1
+              sensor:
+                type: string
+                enum:
+                  - Sentinel-2
+                  - Landsat 8/9
+              cloudy:
+                type: boolean
+            required:
+              - date
+              - ndvi
+              - sensor
+              - cloudy
+            additionalProperties: false
+        maintenance:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+                enum:
+                  - irrigacao
+                  - poda
+                  - adubacao
+                  - reposicao-muda
+                  - vistoria-pavimento
+                  - limpeza-jardim-chuva
+              dueDate:
+                type: string
+                format: date
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+              status:
+                type: string
+                enum:
+                  - concluida
+                  - pendente
+                  - atrasada
+              predicted:
+                type: boolean
+              reason:
+                type: string
+            required:
+              - id
+              - type
+              - dueDate
+              - status
+              - predicted
+              - reason
+            additionalProperties: false
+      required:
+        - id
+        - municipalityId
+        - blockId
+        - areaName
+        - partnerName
+        - partnerType
+        - status
+        - adoptedAt
+        - commitments
+        - ndviSeries
+        - maintenance
+      additionalProperties: false
+    AdoptionSummary:
+      type: object
+      properties:
+        adoption:
+          $ref: "#/components/schemas/Adoption"
+        ndviTrend30d:
+          type: number
+        esg:
+          $ref: "#/components/schemas/EsgResult"
+        nextTask:
+          anyOf:
+            - type: object
+              properties:
+                id:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                    - irrigacao
+                    - poda
+                    - adubacao
+                    - reposicao-muda
+                    - vistoria-pavimento
+                    - limpeza-jardim-chuva
+                dueDate:
+                  type: string
+                  format: date
+                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                status:
+                  type: string
+                  enum:
+                    - concluida
+                    - pendente
+                    - atrasada
+                predicted:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - id
+                - type
+                - dueDate
+                - status
+                - predicted
+                - reason
+              additionalProperties: false
+            - type: "null"
+        overdueTasks:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - adoption
+        - ndviTrend30d
+        - esg
+        - nextTask
+        - overdueTasks
+      additionalProperties: false
+    AdoptionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdoptionSummary"
+      required:
+        - data
+      additionalProperties: false
+    NewAdoption:
+      type: object
+      properties:
+        municipalityId:
+          type: string
+          minLength: 1
+        blockId:
+          type: string
+          minLength: 1
+        partnerName:
+          type: string
+          minLength: 3
+          maxLength: 120
+        partnerType:
+          type: string
+          enum:
+            - industria
+            - comercio
+            - construtora
+            - shopping
+            - logistica
+            - servicos
+        trees:
+          default: []
+          maxItems: 10
+          type: array
+          items:
+            type: object
+            properties:
+              speciesId:
+                type: string
+                enum:
+                  - ipe-amarelo
+                  - ipe-roxo
+                  - sibipiruna
+                  - pau-ferro
+                  - oiti
+                  - quaresmeira
+                  - aroeira-pimenteira
+              count:
+                type: integer
+                minimum: 0
+                maximum: 300
+            required:
+              - speciesId
+              - count
+            additionalProperties: false
+        permeableAreaM2:
+          default: 0
+          type: number
+          minimum: 0
+          maximum: 100000
+        coolRoofAreaM2:
+          default: 0
+          type: number
+          minimum: 0
+          maximum: 100000
+        maintenanceMonths:
+          default: 24
+          type: integer
+          minimum: 6
+          maximum: 120
+      required:
+        - municipalityId
+        - blockId
+        - partnerName
+        - partnerType
+        - trees
+        - permeableAreaM2
+        - coolRoofAreaM2
+        - maintenanceMonths
+      additionalProperties: false
+    FundingProgram:
+      type: object
+      properties:
+        id:
+          type: string
+          enum:
+            - fundo-clima
+            - ambiente-resiliente-rj
+            - fecam
+            - esg-corporativo
+        name:
+          type: string
+        sponsor:
+          type: string
+        audience:
+          type: string
+          enum:
+            - publico
+            - privado
+        description:
+          type: string
+        emphasis:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - name
+        - sponsor
+        - audience
+        - description
+        - emphasis
+      additionalProperties: false
+    FundingProgramListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FundingProgram"
+      required:
+        - data
+      additionalProperties: false
+    ReportRequest:
+      type: object
+      properties:
+        programId:
+          type: string
+          enum:
+            - fundo-clima
+            - ambiente-resiliente-rj
+            - fecam
+            - esg-corporativo
+        municipalityId:
+          type: string
+          pattern: ^[a-z0-9-]+$
+        projectName:
+          type: string
+          minLength: 5
+          maxLength: 140
+        department:
+          type: string
+          minLength: 3
+          maxLength: 140
+        estimatedBudget:
+          type: number
+          exclusiveMinimum: 0
+          maximum: 1000000000
+        neighborhoods:
+          minItems: 1
+          maxItems: 20
+          type: array
+          items:
+            type: string
+            minLength: 1
+        scenarioIds:
+          default: []
+          maxItems: 10
+          type: array
+          items:
+            type: string
+      required:
+        - programId
+        - municipalityId
+        - projectName
+        - department
+        - estimatedBudget
+        - neighborhoods
+        - scenarioIds
+      additionalProperties: false
+    ReportDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        title:
+          type: string
+        program:
+          $ref: "#/components/schemas/FundingProgram"
+        municipality:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            state:
+              type: string
+            population:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+          required:
+            - id
+            - name
+            - state
+            - population
+          additionalProperties: false
+        request:
+          $ref: "#/components/schemas/ReportRequest"
+        diagnosis:
+          type: object
+          properties:
+            blocksAnalyzed:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            levelCounts:
+              type: object
+              propertyNames:
+                type: string
+                enum:
+                  - baixo
+                  - medio
+                  - alto
+                  - critico
+              additionalProperties:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+              required:
+                - baixo
+                - medio
+                - alto
+                - critico
+            averageUtciPeak:
+              type: number
+            averageLst:
+              type: number
+            averageCanopy:
+              type: number
+            populationAffected:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            elderlyAffected:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            kpis:
+              type: array
+              items:
+                type: object
+                properties:
+                  label:
+                    type: string
+                  value:
+                    type: string
+                  hint:
+                    type: string
+                required:
+                  - label
+                  - value
+                additionalProperties: false
+            priorityBlocks:
+              type: array
+              items:
+                $ref: "#/components/schemas/RankingRow"
+            neighborhoods:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  blocks:
+                    type: integer
+                    minimum: -9007199254740991
+                    maximum: 9007199254740991
+                  averageIvtu:
+                    type: number
+                  averageUtciPeak:
+                    type: number
+                  criticalBlocks:
+                    type: integer
+                    minimum: -9007199254740991
+                    maximum: 9007199254740991
+                required:
+                  - name
+                  - blocks
+                  - averageIvtu
+                  - averageUtciPeak
+                  - criticalBlocks
+                additionalProperties: false
+          required:
+            - blocksAnalyzed
+            - levelCounts
+            - averageUtciPeak
+            - averageLst
+            - averageCanopy
+            - populationAffected
+            - elderlyAffected
+            - kpis
+            - priorityBlocks
+            - neighborhoods
+          additionalProperties: false
+        epidemiology:
+          type: array
+          items:
+            type: object
+            properties:
+              statement:
+                type: string
+              source:
+                type: string
+            required:
+              - statement
+              - source
+            additionalProperties: false
+        interventions:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - arborizacao
+                  - pavimento-permeavel
+                  - telhado-frio
+              label:
+                type: string
+              blocks:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+              tactical:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+              structural:
+                type: integer
+                minimum: -9007199254740991
+                maximum: 9007199254740991
+            required:
+              - type
+              - label
+              - blocks
+              - tactical
+              - structural
+            additionalProperties: false
+        socioeconomic:
+          type: array
+          items:
+            type: object
+            properties:
+              statement:
+                type: string
+              basis:
+                type: string
+            required:
+              - statement
+              - basis
+            additionalProperties: false
+        scenarios:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 3
+                maxLength: 80
+              municipalityId:
+                type: string
+                minLength: 1
+              scenario:
+                type: object
+                properties:
+                  blockId:
+                    type: string
+                    minLength: 1
+                  trees:
+                    default: []
+                    maxItems: 10
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        speciesId:
+                          type: string
+                          enum:
+                            - ipe-amarelo
+                            - ipe-roxo
+                            - sibipiruna
+                            - pau-ferro
+                            - oiti
+                            - quaresmeira
+                            - aroeira-pimenteira
+                        count:
+                          type: integer
+                          minimum: 0
+                          maximum: 300
+                      required:
+                        - speciesId
+                        - count
+                      additionalProperties: false
+                  permeablePavementShare:
+                    default: 0
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  coolRoofShare:
+                    default: 0
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  horizonYears:
+                    default: 10
+                    type: integer
+                    minimum: 1
+                    maximum: 20
+                required:
+                  - blockId
+                  - trees
+                  - permeablePavementShare
+                  - coolRoofShare
+                  - horizonYears
+                additionalProperties: false
+              id:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+              summary:
+                type: object
+                properties:
+                  blockCode:
+                    type: string
+                  blockLabel:
+                    type: string
+                  peakUtciDelta:
+                    type: number
+                  peakUtciDeltaRange:
+                    type: array
+                    prefixItems:
+                      - type: number
+                      - type: number
+                    items: false
+                    minItems: 2
+                    maxItems: 2
+                  runoffChange:
+                    type: number
+                  evapotranspirationChange:
+                    type: number
+                  plantedTrees:
+                    type: number
+                  permeableAreaM2:
+                    type: number
+                  coolRoofAreaM2:
+                    type: number
+                required:
+                  - blockCode
+                  - blockLabel
+                  - peakUtciDelta
+                  - peakUtciDeltaRange
+                  - runoffChange
+                  - evapotranspirationChange
+                  - plantedTrees
+                  - permeableAreaM2
+                  - coolRoofAreaM2
+                additionalProperties: false
+            required:
+              - name
+              - municipalityId
+              - scenario
+              - id
+              - createdAt
+              - summary
+            additionalProperties: false
+        fieldValidation:
+          type: object
+          properties:
+            checklistsStarted:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            checklistsCompleted:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+          required:
+            - checklistsStarted
+            - checklistsCompleted
+          additionalProperties: false
+        notices:
+          type: array
+          items:
+            type: string
+        seal:
+          type: string
+      required:
+        - id
+        - generatedAt
+        - title
+        - program
+        - municipality
+        - request
+        - diagnosis
+        - epidemiology
+        - interventions
+        - socioeconomic
+        - scenarios
+        - fieldValidation
+        - notices
+        - seal
+      additionalProperties: false

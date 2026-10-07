@@ -18,8 +18,12 @@ function serializeError(error: unknown): Fields {
   return { message: String(error) };
 }
 
+const isTest = process.env.NODE_ENV === "test";
+
 function emit(level: Level, message: string, fields: Fields = {}) {
   if (level === "debug" && isProduction) return;
+  // Nos testes, só avisos e erros (o log de cada requisição poluiria a saída).
+  if (isTest && (level === "debug" || level === "info")) return;
   const payload = { level, message, time: new Date().toISOString(), ...fields };
 
   if (isServer) {

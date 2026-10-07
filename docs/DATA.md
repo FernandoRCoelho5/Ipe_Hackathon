@@ -53,7 +53,7 @@ LST ≈ 27 + 15·impermeabilização + 7·telhado metálico − 13·copa + 3·pr
 
 ### Datas sempre "atuais"
 
-O conjunto é ancorado em `2026-01-20T15:00` (horário de Brasília). Na leitura, o repositório mock desloca todas as datas para que o âncora coincida com a hora cheia atual ([`clock.ts`](../src/server/repositories/mock/clock.ts)). O conteúdo continua determinístico, mas o último relato é de minutos atrás e as leituras IoT chegam até a hora corrente.
+O conjunto é ancorado em `2026-01-20T15:00` (horário de Brasília). Na leitura, o repositório mock desloca todas as datas em **dias inteiros**, alinhando a data do âncora à data de hoje ([`clock.ts`](../src/server/repositories/mock/clock.ts)). Deslocar por dias preserva o ciclo diário: o pico de calor das leituras continua à tarde. O gerador produz leituras até 23 h depois do âncora e o repositório descarta o que estiver no futuro. Assim, a leitura mais recente é sempre a da hora corrente, e o conteúdo continua determinístico.
 
 ### Escritas durante a demonstração
 
@@ -68,6 +68,6 @@ A interface e as rotas dependem só dos contratos em [`src/server/repositories/t
    - **INMET:** estações de Volta Redonda, Resende e Valença, que geram o `DailyWeather` de cada município.
    - **OpenStreetMap:** quarteirões (polígonos entre vias), calçadas e praças. Um script opcional de download via Overpass pode substituir a malha sintética.
    - **IBGE/Ipea:** setores censitários (renda, densidade, % de idosos) e Índice de Vulnerabilidade Social, agregados por quarteirão.
-2. **Persistência:** PostgreSQL 16 + PostGIS 3.4 com o esquema de `db/schema.sql` (Fase 3).
+2. **Persistência:** PostgreSQL 16 + PostGIS 3.4 com o esquema de [`db/schema.sql`](../db/schema.sql). O seed [`db/seeds/001_demo_data.sql`](../db/seeds/001_demo_data.sql) (`npm run db:seed-sql`) carrega o mesmo conjunto demonstrativo, inclusive o UTCI horário calculado pelo domínio. No banco, as datas ficam no instante de referência; o deslocamento temporal é um recurso só do repositório mock.
 3. **Implementação `postgis`** dos repositórios e `DATA_SOURCE=postgis` no ambiente.
 4. **Calibração:** comparar o UTCI do modelo com o UTCI oficial e com os nós IoT, ajustando os coeficientes de [`coefficients.ts`](../src/domain/simulation/coefficients.ts) e de `thermal/`.

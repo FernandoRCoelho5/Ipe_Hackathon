@@ -4,7 +4,10 @@ import { conditionsAt, hourlyProfile, type HourlyConditions } from "@/domain/blo
 import type { Block } from "@/domain/block/schema";
 import { DEFAULT_IVTU_CONFIG, type IvtuConfig } from "@/domain/ivtu/ivtu";
 import type { DailyWeather } from "@/domain/thermal/diurnal";
+import { NotFoundError } from "@/server/errors";
 import { getRepositories } from "@/server/repositories";
+
+export { NotFoundError };
 
 /**
  * Serviço de diagnóstico: compõe repositórios (dados) e domínio (modelos).
@@ -14,13 +17,6 @@ import { getRepositories } from "@/server/repositories";
 export interface DiagnosedBlock {
   block: Block;
   diagnostics: BlockDiagnostics;
-}
-
-export class NotFoundError extends Error {
-  constructor(what: string) {
-    super(`${what} não encontrado`);
-    this.name = "NotFoundError";
-  }
 }
 
 const cache = new Map<string, Promise<DiagnosedBlock[]>>();

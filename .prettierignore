@@ -9,3 +9,5 @@ test-results
 /.playwright-mcp
 docs/brand
 src/server/repositories/mock/data
+docs/openapi.yaml
+db/seeds

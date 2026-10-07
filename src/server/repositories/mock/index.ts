@@ -222,10 +222,9 @@ export function createMockRepositories({
       },
       async listReadings(nodeId, options = {}) {
         const s = shift();
-        const readings = (READINGS_BY_NODE.get(nodeId) ?? []).map((r) => ({
-          ...r,
-          timestamp: s.instant(r.timestamp),
-        }));
+        const readings = (READINGS_BY_NODE.get(nodeId) ?? [])
+          .map((r) => ({ ...r, timestamp: s.instant(r.timestamp) }))
+          .filter((r) => s.isPast(r.timestamp));
         if (!options.hours) return readings;
         const from = s.now.getTime() - options.hours * 3_600_000;
         return readings.filter((r) => Date.parse(r.timestamp) >= from);
@@ -264,6 +263,17 @@ export function createMockRepositories({
         };
         state.newReports.unshift(report);
         return report;
+      },
+      async countByStatus(filter = {}) {
+        const since = filter.since ? Date.parse(filter.since) : undefined;
+        const counts = { pendente: 0, validado: 0, descartado: 0, spam: 0 };
+        for (const r of allReports()) {
+          if (filter.municipalityId && r.municipalityId !== filter.municipalityId) continue;
+          if (filter.categories?.length && !filter.categories.includes(r.category)) continue;
+          if (since !== undefined && Date.parse(r.createdAt) < since) continue;
+          counts[r.status] += 1;
+        }
+        return counts;
       },
       async updateStatus(id, status) {
         const exists =

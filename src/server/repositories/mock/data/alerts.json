@@ -10,7 +10,7 @@
     "title": "Onda de calor no Médio Paraíba",
     "message": "Máximas de até 38,4 °C previstas para os próximos 4 dias, com sensação térmica acima de 40 °C nas áreas centrais entre 11h e 16h. Priorize sombra e hidratação em pontos de ônibus, feiras e obras.",
     "maxTempC": 38.4,
-    "startsAt": "2026-01-20T12:00:00.000Z",
+    "startsAt": "2026-01-19T12:00:00.000Z",
     "endsAt": "2026-01-24T18:00:00.000Z",
     "source": "Simulado para demonstração (no piloto: INMET e Defesa Civil)"
   }

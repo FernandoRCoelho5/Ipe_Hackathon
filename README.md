@@ -16,14 +16,24 @@ npm run dev        # http://localhost:3000
 npm run check      # lint + typecheck + testes + build (o mesmo portão do CI)
 ```
 
-| Script                                   | O que faz                                          |
-| ---------------------------------------- | -------------------------------------------------- |
-| `npm run dev`                            | Servidor de desenvolvimento (Turbopack)            |
-| `npm run build` / `npm start`            | Build e servidor de produção                       |
-| `npm run lint` · `npm run typecheck`     | ESLint e TypeScript estrito                        |
-| `npm run test` · `npm run test:coverage` | Vitest + Testing Library                           |
-| `npm run format`                         | Prettier (com ordenação de classes Tailwind)       |
-| `npm run seed`                           | Regenera os dados demonstrativos (determinísticos) |
+Com Docker (PostGIS 16 + aplicação):
+
+```bash
+docker compose up --build   # web em http://localhost:3000, PostGIS em localhost:5432
+```
+
+A API está documentada em [`docs/openapi.yaml`](docs/openapi.yaml) (OpenAPI 3.1).
+
+| Script                                   | O que faz                                           |
+| ---------------------------------------- | --------------------------------------------------- |
+| `npm run dev`                            | Servidor de desenvolvimento (Turbopack)             |
+| `npm run build` / `npm start`            | Build e servidor de produção                        |
+| `npm run lint` · `npm run typecheck`     | ESLint e TypeScript estrito                         |
+| `npm run test` · `npm run test:coverage` | Vitest + Testing Library                            |
+| `npm run format`                         | Prettier (com ordenação de classes Tailwind)        |
+| `npm run seed`                           | Regenera os dados demonstrativos (determinísticos)  |
+| `npm run db:seed-sql`                    | Gera o seed SQL do PostGIS a partir desses dados    |
+| `npm run openapi`                        | Gera `docs/openapi.yaml` a partir dos contratos Zod |
 
 ## Stack
 
@@ -31,7 +41,9 @@ Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito ·
 
 ## Documentação
 
-- [Arquitetura](docs/ARCHITECTURE.md): camadas, fluxo de dados e regras de dependência
+- [Arquitetura](docs/ARCHITECTURE.md): camadas, API v1, banco e regras de dependência
+- [Contrato da API](docs/openapi.yaml): OpenAPI 3.1, 23 operações
+- [Backend futuro](apps/api/README.md): FastAPI + Celery + GEE sobre o mesmo contrato
 - [Decisões (ADR)](docs/DECISIONS.md)
 - [Metodologia](docs/METHODOLOGY.md): UTCI, IVTU, motor prescritivo, simulador e ESG
 - [Dados](docs/DATA.md): o que é demonstrativo e como trocar pelo pipeline real
@@ -48,6 +60,8 @@ src/
   server/         repositórios (contratos + mock), serviços, gerador de dados demonstrativos
   lib/            config, formatadores pt-BR, i18n, tema, logger
   stores/         estado de cliente (Zustand)
-scripts/          seed-demo-data.ts
+scripts/          seed-demo-data.ts, export-sql-seed.ts, generate-openapi.ts
+db/               schema.sql (PostGIS) e seeds/
+apps/api/         plano do backend FastAPI (não implementado)
 docs/             arquitetura, metodologia, dados, ADRs, marca e roadmap
 ```

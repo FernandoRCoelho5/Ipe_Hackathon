@@ -79,6 +79,10 @@ export interface CitizenReportRepository {
   getById(id: string): Promise<CitizenReport | null>;
   create(input: NewCitizenReport): Promise<CitizenReport>;
   updateStatus(id: string, status: ReportStatus): Promise<CitizenReport | null>;
+  /** Contagem por status com os demais filtros aplicados (abas de moderação). */
+  countByStatus(
+    filter?: Omit<CitizenReportFilter, "statuses" | "page" | "pageSize">,
+  ): Promise<Record<ReportStatus, number>>;
 }
 
 export interface AdoptionRepository {

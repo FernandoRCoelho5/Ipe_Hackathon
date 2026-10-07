@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { createTimeShift } from "./clock";
+import { createTimeShift, localDayIndex } from "./clock";
 import { createMockRepositories, DEMO_META, paginate } from "./index";
 
 const ANCHOR = Date.parse(DEMO_META.anchor);
@@ -8,11 +8,36 @@ const NOW = new Date(ANCHOR + 260 * 86_400_000 + 25 * 60_000); // ~8,5 meses dep
 const repos = () => createMockRepositories({ clock: () => NOW });
 
 describe("deslocamento temporal", () => {
-  it("leva o âncora para a hora cheia atual e desloca datas em dias inteiros", () => {
+  it("alinha a data local do âncora a hoje, preservando a hora do dia", () => {
     const shift = createTimeShift(DEMO_META.anchor, NOW);
-    const currentHour = new Date(Math.floor(NOW.getTime() / 3_600_000) * 3_600_000).toISOString();
-    expect(shift.instant(DEMO_META.anchor)).toBe(currentHour);
-    expect(shift.date("2026-01-20")).toBe(currentHour.slice(0, 10));
+    const shiftedAnchor = new Date(shift.instant(DEMO_META.anchor));
+    // Âncora: 15h em Brasília (18h UTC), na mesma data local de NOW.
+    expect(shiftedAnchor.getUTCHours()).toBe(18);
+    expect(localDayIndex(shiftedAnchor.getTime())).toBe(localDayIndex(NOW.getTime()));
+    expect(shift.date("2026-01-20")).toBe(shift.instant(DEMO_META.anchor).slice(0, 10));
+    expect(shift.isPast(new Date(NOW.getTime() + 1).toISOString())).toBe(false);
+  });
+
+  it("de madrugada: leitura mais recente é da hora atual, nó offline segue offline e alerta ativo", async () => {
+    // 06h30 em Brasília, antes do horário do âncora (15h).
+    const early = new Date(Date.UTC(2026, 9, 7, 9, 30));
+    const r = createMockRepositories({ clock: () => early });
+    const [node] = await r.sensors.listNodes("volta-redonda");
+    const last = (await r.sensors.listReadings(node.id)).at(-1);
+    expect(early.getTime() - Date.parse(last?.timestamp ?? "")).toBeLessThan(3_600_000);
+    // Pico diurno preservado: a leitura das 06h (local) é mais fria que a das 15h da véspera.
+    const readings = await r.sensors.listReadings(node.id, { hours: 24 });
+    const at = (localHour: number) =>
+      readings.find((x) => new Date(x.timestamp).getUTCHours() === (localHour + 3) % 24)
+        ?.temperatureC ?? NaN;
+    expect(at(6)).toBeLessThan(at(15));
+    const offline = await r.sensors.listReadings("iot-bm-02");
+    expect(early.getTime() - Date.parse(offline.at(-1)?.timestamp ?? "")).toBeGreaterThan(
+      2 * 3_600_000,
+    );
+    expect(await r.alerts.listActive("volta-redonda")).toHaveLength(1);
+    const reports = await r.citizenReports.list({ pageSize: 100 });
+    expect(reports.items.every((x) => Date.parse(x.createdAt) <= early.getTime())).toBe(true);
   });
 });
 
