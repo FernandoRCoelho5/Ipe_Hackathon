@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatClock,
   formatCurrency,
   formatDate,
   formatDecimal,
   formatHour,
   formatInteger,
+  formatIsoDate,
   formatPercent,
   formatRelativeTime,
   formatSigned,
@@ -60,5 +62,11 @@ describe("formatação pt-BR", () => {
     expect(formatRelativeTime("2026-10-07T11:55:00Z", now)).toBe("há 5 minutos");
     expect(formatRelativeTime("2026-10-06T12:00:00Z", now)).toBe("ontem");
     expect(formatRelativeTime("2026-10-07T12:00:00Z", now)).toBe("agora");
+  });
+
+  it("formata a data local para nomes de arquivo", () => {
+    // 01:30 UTC ainda é o dia anterior em São Paulo (UTC−3).
+    expect(formatIsoDate("2026-10-08T01:30:00.000Z")).toBe("2026-10-07");
+    expect(formatClock("2026-10-08T17:30:00.000Z")).toBe("14:30");
   });
 });

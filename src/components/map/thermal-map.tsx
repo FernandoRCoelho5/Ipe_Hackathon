@@ -16,6 +16,7 @@ import { cn } from "@/lib/cn";
 import { messages } from "@/lib/i18n";
 import { logger } from "@/lib/logger";
 import { useTheme } from "@/lib/use-theme";
+import { BASEMAP_STYLES, firstSymbolLayerId, loadMapLibre, MAP_LOCALE } from "./maplibre";
 import { fillColorExpression, layerColor, readableTextOn, type MapLayerConfig } from "./scales";
 
 /**
@@ -27,28 +28,9 @@ import { fillColorExpression, layerColor, readableTextOn, type MapLayerConfig } 
  * - seleção e destaque também são `feature-state`, então recolorir é instantâneo.
  */
 
-const BASEMAP_STYLES = {
-  light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-} as const;
-
 const SOURCE_ID = "ipe-blocks";
 const FILL_ID = "ipe-blocks-fill";
 const LINE_ID = "ipe-blocks-line";
-
-const MAP_LOCALE: Record<string, string> = {
-  "AttributionControl.ToggleAttribution": "Mostrar ou ocultar créditos do mapa",
-  "AttributionControl.MapFeedback": "Sugerir correção no mapa",
-  "Map.Title": "Mapa",
-  "NavigationControl.ZoomIn": "Aproximar",
-  "NavigationControl.ZoomOut": "Afastar",
-  "NavigationControl.ResetBearing": "Girar o mapa; clique para voltar ao norte",
-  "ScaleControl.Meters": "m",
-  "ScaleControl.Kilometers": "km",
-  "CooperativeGesturesHandler.WindowsHelpText": "Use Ctrl + rolagem para aproximar o mapa",
-  "CooperativeGesturesHandler.MacHelpText": "Use ⌘ + rolagem para aproximar o mapa",
-  "CooperativeGesturesHandler.MobileHelpText": "Use dois dedos para mover o mapa",
-};
 
 type Feature = MapLayersResponse["features"][number];
 
@@ -101,11 +83,6 @@ function widen(padding: PaddingOptions | number, extra: number): PaddingOptions 
 
 function toCollection(features: readonly Feature[] | undefined) {
   return { type: "FeatureCollection" as const, features: [...(features ?? [])] };
-}
-
-/** As camadas do Ipê entram abaixo dos rótulos do basemap (ruas continuam legíveis). */
-function firstSymbolLayerId(map: MapLibreMap): string | undefined {
-  return map.getStyle().layers.find((layer) => layer.type === "symbol")?.id;
 }
 
 const isSelected: ExpressionSpecification = ["boolean", ["feature-state", "selected"], false];
@@ -212,10 +189,8 @@ export function ThermalMap({
     let map: MapLibreMap | undefined;
 
     void (async () => {
-      const maplibre = await import("maplibre-gl");
+      const maplibre = await loadMapLibre();
       if (cancelled || !containerRef.current) return;
-      // Worker servido do mesmo domínio (scripts/copy-maplibre-worker.mjs).
-      maplibre.setWorkerUrl(`/vendor/maplibre-gl-worker.mjs?v=${maplibre.getVersion()}`);
       const view = initialView();
       try {
         map = new maplibre.Map({

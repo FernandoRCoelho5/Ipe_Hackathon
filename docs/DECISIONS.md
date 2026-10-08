@@ -139,3 +139,19 @@ Formato curto: contexto → decisão → consequências. Decisões novas entram 
 **Decisão.** Esses dois endpoints usam `computeRateLimiter` (240/min por IP e rota); escritas de verdade seguem em 30/min.
 
 **Consequências.** Exploração fluida no simulador, ainda com proteção contra abuso. O OpenAPI documenta os dois limites na resposta 429.
+
+## ADR-018 · Relatórios gerados no navegador a partir de um roteiro único
+
+**Contexto.** O relatório para editais precisa existir em três formas — pré-visualização na tela, PDF para submissão e DOCX editável pela prefeitura — sem que números ou textos divirjam entre elas. Gerar no servidor exigiria Chromium headless ou LibreOffice na imagem Docker.
+
+**Decisão.** A API devolve o documento estruturado (`POST /reports/preview`); `buildReportOutline` o traduz uma única vez em seções, parágrafos, listas, indicadores e tabelas. HTML, PDF (`@react-pdf/renderer`, A4, Poppins embutida, wordmark vetorial) e DOCX (`docx`) só desenham esse roteiro. Os dois geradores são importados sob demanda no clique de download.
+
+**Consequências.** Os três formatos são consistentes por construção, e os testes geram PDF e DOCX reais (Node) a partir de um relatório verdadeiro do serviço. Nenhuma dependência nativa no servidor; o custo (≈ 1 MB de JavaScript) só é pago por quem baixa um arquivo.
+
+## ADR-019 · CSP para o WebAssembly do gerador de PDF
+
+**Contexto.** O motor de layout do react-pdf (yoga) é WebAssembly embutido como data URL. Sem ajuste, a CSP bloqueia o `fetch` do `data:` e, em produção, a compilação do WebAssembly.
+
+**Decisão.** Acrescentar `'wasm-unsafe-eval'` a `script-src` e `data:` a `connect-src`. `'unsafe-eval'` continua só em desenvolvimento.
+
+**Consequências.** O PDF é gerado sob CSP em produção. `'wasm-unsafe-eval'` permite compilar WebAssembly, mas não `eval` de JavaScript; `data:` em `connect-src` não amplia exfiltração além do que `'self'` já permite.

@@ -14,11 +14,13 @@ const BASEMAP_ORIGINS = "https://basemaps.cartocdn.com https://*.basemaps.cartoc
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // 'wasm-unsafe-eval': motor de layout (yoga, WebAssembly) do gerador de PDF no navegador.
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${BASEMAP_ORIGINS}`,
   "font-src 'self' data:",
-  `connect-src 'self' ${BASEMAP_ORIGINS}${isDev ? " ws: wss:" : ""}`,
+  // data: o yoga carrega o próprio .wasm embutido como data URL.
+  `connect-src 'self' data: ${BASEMAP_ORIGINS}${isDev ? " ws: wss:" : ""}`,
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",

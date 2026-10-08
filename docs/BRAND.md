@@ -39,7 +39,7 @@ Amarelo Ipê sobre Papel tem só 1,7 : 1 e por isso **não é usado em texto no 
 
 ## Tipografia
 
-Poppins via `next/font/google` (pesos 300–700, subconjuntos `latin` e `latin-ext`), variável `--font-poppins`. Títulos em 600–700; corpo em 400–500; legendas em Medium, caixa alta, com tracking amplo.
+Poppins via `next/font/google` (pesos 300–700, subconjuntos `latin` e `latin-ext`), variável `--font-poppins`. Os relatórios em PDF embutem a Poppins a partir dos TTF em `public/fonts/poppins/` (licença OFL incluída); o DOCX declara Poppins e o Word usa a fonte instalada ou a substituta. Títulos em 600–700; corpo em 400–500; legendas em Medium, caixa alta, com tracking amplo.
 
 ## Logotipo
 

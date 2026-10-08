@@ -4,13 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { IvtuBadge } from "@/components/data/badges";
 import { SearchField } from "@/components/ui/field";
+import type { RankingRow } from "@/lib/api/contracts";
 import { queries } from "@/lib/api/queries";
 import { useDebouncedValue } from "@/lib/hooks";
 import { messages } from "@/lib/i18n";
 
 interface BlockPickerProps {
   municipalityId: string;
-  onPick: (blockId: string) => void;
+  onPick: (blockId: string, row: RankingRow) => void;
 }
 
 /** Busca de quarteirão por código, rua ou bairro (usa o ranking da API). */
@@ -47,7 +48,7 @@ export function BlockPicker({ municipalityId, onPick }: BlockPickerProps) {
                   type="button"
                   onClick={() => {
                     setSearch("");
-                    onPick(row.id);
+                    onPick(row.id, row);
                   }}
                   className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-surface-muted"
                 >

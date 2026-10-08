@@ -92,6 +92,29 @@ export function formatDate(input: Date | string | number, style: DateStyle = "me
   return dateFormatters[style].format(new Date(input));
 }
 
+const isoDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const clockFormatter = new Intl.DateTimeFormat(LOCALE, {
+  timeZone: TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+/** Hora local de um instante: "14:30" (eixos de séries temporais). */
+export function formatClock(input: Date | string | number): string {
+  return clockFormatter.format(new Date(input));
+}
+
+/** Data local (America/Sao_Paulo) em AAAA-MM-DD, para nomes de arquivo. */
+export function formatIsoDate(input: Date | string | number): string {
+  return isoDateFormatter.format(new Date(input));
+}
+
 const dateTimeFormatter = new Intl.DateTimeFormat(LOCALE, {
   timeZone: TIME_ZONE,
   dateStyle: "short",

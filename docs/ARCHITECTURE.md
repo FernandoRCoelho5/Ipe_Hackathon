@@ -67,13 +67,18 @@ As telas são Client Components dentro de `<Suspense>` (leem a URL com `useSearc
 - **Município ativo:** `useActiveMunicipality()` (contexto do layout + Zustand) é `null` até a reidratação, para nenhuma tela buscar dados do município errado.
 - **Estado na URL:** filtros, camada, página e quarteirão aberto (`?bloco=`) via History API nativa (`useUrlState`). Os links são compartilháveis e o "voltar" funciona. `useBlockMunicipalitySync` alinha quarteirão e município quando um link aponta para outra cidade.
 - **Mapa:** [`<ThermalMap />`](../src/components/map/thermal-map.tsx) é o único arquivo que conhece o MapLibre. A geometria entra uma vez; UTCI da hora, seleção e destaque são `feature-state`.
+- **Formulários:** React Hook Form validado pelos MESMOS schemas Zod da API (`reportRequestSchema`, `newAdoptionSchema`), com as mensagens em português do domínio.
+- **Relatórios:** [`report-outline.ts`](../src/components/reports/report-outline.ts) traduz o `ReportDocument` em um roteiro único; a pré-visualização (HTML), o PDF (`@react-pdf/renderer`) e o DOCX (`docx`) só desenham esse roteiro. Os geradores são carregados no clique e rodam no navegador.
 - **Simulador:** os controles editam um rascunho puro ([`scenario.ts`](../src/components/simulator/scenario.ts)); o efeito é sempre calculado pela API (`POST /simulation/what-if`, com debounce), e o resultado anterior fica esmaecido enquanto o novo chega.
 
-| Tela       | Endpoints usados                                                                                      |
-| ---------- | ----------------------------------------------------------------------------------------------------- |
-| Mapa       | `thermals/map-layers`, `thermals/utci-by-hour`, `alerts`, `prescriptions/ivtu-ranking`, `blocks/{id}` |
-| Prescrição | `prescriptions/ivtu-ranking`, `blocks/{id}`, `blocks/{id}/checklist` (GET e PUT)                      |
-| Simulador  | `blocks/{id}`, `simulation/what-if`, `esg/impact`, `simulation/scenarios` (GET e POST)                |
+| Tela                 | Endpoints usados                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------ |
+| Mapa                 | `thermals/map-layers`, `thermals/utci-by-hour`, `alerts`, `prescriptions/ivtu-ranking`, `blocks/{id}`  |
+| Prescrição           | `prescriptions/ivtu-ranking`, `blocks/{id}`, `blocks/{id}/checklist` (GET e PUT)                       |
+| Simulador            | `blocks/{id}`, `simulation/what-if`, `esg/impact`, `simulation/scenarios` (GET e POST)                 |
+| Relatórios           | `reports/programs`, `prescriptions/ivtu-ranking` (bairros), `simulation/scenarios`, `reports/preview`  |
+| Ciência cidadã       | `citizen-reports` (GET, POST e PATCH), `iot-nodes`, `iot-nodes/{id}/readings`, `iot-nodes/calibration` |
+| Adote uma Ilha Verde | `adoptions` (GET e POST), `prescriptions/ivtu-ranking` (busca da área)                                 |
 
 ## Banco de dados
 

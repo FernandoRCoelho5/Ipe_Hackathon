@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/page-container";
-import { ScreenInProgress } from "@/components/layout/screen-in-progress";
+import { ReportsScreen } from "@/components/reports/reports-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { messages } from "@/lib/i18n";
 
@@ -13,7 +13,7 @@ export default function Page() {
   return (
     <PageContainer>
       <PageHeader eyebrow={screen.eyebrow} title={screen.title} description={nav.description} />
-      <ScreenInProgress />
+      <ReportsScreen />
     </PageContainer>
   );
 }
