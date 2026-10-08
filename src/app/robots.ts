@@ -1,14 +1,17 @@
 import type { MetadataRoute } from "next";
-import { PLATFORM_ROUTES } from "@/domain/access/access";
 import { siteConfig } from "@/lib/config/site";
 
-/** Só a landing e a privacidade são públicas; as telas, o login e a API não são indexados. */
+/**
+ * A landing e a privacidade são públicas. As telas não precisam de bloqueio aqui: sem
+ * sessão, o proxy redireciona para `/entrar`, que tem `noindex`. Ficam bloqueadas só a
+ * API e as páginas de login e de acesso restrito.
+ */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/privacidade"],
-      disallow: ["/api/", "/entrar", ...PLATFORM_ROUTES],
+      allow: "/",
+      disallow: ["/api/", "/entrar", "/acesso-restrito"],
     },
     sitemap: `${siteConfig.url}/sitemap.xml`,
   };
