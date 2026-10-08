@@ -34,8 +34,10 @@
 | `src/app/api/v1/`          | REST: validação Zod, erros padronizados, cache                        | `domain`, `server`                     |
 | `src/app/` (páginas)       | Rotas, layouts, metadados                                             | tudo acima + `components`              |
 | `src/components/`          | UI (layout, mapa, gráficos, ui, tour)                                 | `domain` (tipos), `lib`, `stores`      |
-| `src/lib/`                 | Config, formatadores, i18n, tema, logger                              | —                                      |
-| `src/stores/`              | Estado de cliente (Zustand)                                           | `domain` (tipos)                       |
+| `src/lib/`                 | Config, formatadores, i18n, tema, logger                              | `domain` (regras puras, ex.: acesso)   |
+| `src/stores/`              | Estado de cliente (Zustand): município, perfil, tour                  | `domain` (tipos)                       |
+
+Server Actions (`src/server/auth/actions.ts`, com `"use server"`) podem ser importadas por componentes: são chamadas remotas, não código do servidor no navegador.
 
 `src/server/repositories/index.ts` importa `server-only`: qualquer tentativa de usar repositórios em um Client Component falha no build.
 
@@ -56,6 +58,7 @@
 | IoT                  | `GET /iot-nodes`, `GET /iot-nodes/{id}/readings`, `GET /iot-nodes/calibration`   |
 | Adote uma Ilha Verde | `GET·POST /adoptions`, `GET /adoptions/{id}`                                     |
 | Relatórios           | `GET /reports/programs`, `POST /reports/preview`                                 |
+| Comercial            | `POST /pilot-requests` (público, 5/min)                                          |
 
 `GET /api/health` atende orquestradores (Docker, balanceadores).
 
@@ -79,6 +82,37 @@ As telas são Client Components dentro de `<Suspense>` (leem a URL com `useSearc
 | Relatórios           | `reports/programs`, `prescriptions/ivtu-ranking` (bairros), `simulation/scenarios`, `reports/preview`  |
 | Ciência cidadã       | `citizen-reports` (GET, POST e PATCH), `iot-nodes`, `iot-nodes/{id}/readings`, `iot-nodes/calibration` |
 | Adote uma Ilha Verde | `adoptions` (GET e POST), `prescriptions/ivtu-ranking` (busca da área)                                 |
+
+## Acesso (RF08)
+
+A matriz de perfis e permissões vive em [`src/domain/access`](../src/domain/access/access.ts) e é aplicada em três pontos (ADR-020):
+
+| Onde                                          | O que faz                                                                                    |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [`src/proxy.ts`](../src/proxy.ts)             | Telas: sem sessão → `/entrar`; sem permissão → `/acesso-restrito`; `?demo=1` → Administrador |
+| `withApi({ permission })`                     | Escritas: `401` sem sessão e `403` sem permissão (`ApiError`), com o perfil no log           |
+| Interface (`usePermission`, `PermissionNote`) | Navegação filtrada; botões desabilitados com o motivo                                        |
+
+| Permissão                          | Admin. Municipal | Técnico | Cliente B2B | Leitor Público |
+| ---------------------------------- | :--------------: | :-----: | :---------: | :------------: |
+| Salvar cenários                    |        ✓         |    ✓    |      ✓      |                |
+| Checklist de campo                 |        ✓         |    ✓    |             |                |
+| Moderar relatos                    |        ✓         |    ✓    |             |                |
+| Cadastrar parcerias                |        ✓         |    ✓    |      ✓      |                |
+| Gerar e exportar relatórios (tela) |        ✓         |    ✓    |      ✓      |                |
+| Editais de recurso público         |        ✓         |    ✓    |             |                |
+| Gerenciar acessos (tela)           |        ✓         |         |             |                |
+
+Sessão: cookie `ipe_session` (`httpOnly`, `SameSite=Lax`, 8 h) com HMAC-SHA256 via Web Crypto ([`session-token.ts`](../src/server/auth/session-token.ts)). O layout lê o cookie num Server Component em `<Suspense>` (`SessionLoader`) e entrega só o perfil ao cliente.
+
+## Modo Apresentação
+
+- **`?demo=1`:** o proxy emite a sessão de Administrador Municipal; no cliente, `PresentationMode` seleciona o primeiro município e o quarteirão mais crítico (`?bloco=`) e abre a introdução do tour.
+- **Tour:** roteiro em dados ([`steps.ts`](../src/components/tour/steps.ts)), com 12 passos em seis telas. O cartão se ancora em `[data-tour]`, entra no `<dialog>` modal aberto quando há um e responde a ← → e Esc (ADR-021).
+
+## Landing
+
+Server Component estático: hero com uma prévia do mapa em SVG, problema (119.643 mortes e o comparativo pixel de 30 m × quarteirão), solução, comparativo, arquitetura com cronograma e investimento, impacto, adoção e o formulário de piloto. A vitrine vem de [`showcase.ts`](../src/server/services/showcase.ts). Inclui imagem Open Graph gerada no build, `robots.txt`, `sitemap.xml` e JSON-LD (ADR-022).
 
 ## Banco de dados
 

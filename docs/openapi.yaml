@@ -10,6 +10,7 @@ info:
     Nesta versão, os dados são demonstrativos (ver docs/DATA.md).
 
     Erros seguem o formato `ApiError`. Respostas trazem o cabeçalho `X-Request-Id`.
+    Leituras são públicas. Escritas protegidas exigem a sessão de um perfil com a permissão indicada (RF08); no MVP, um cookie assinado de demonstração, e no piloto, OIDC.
     Este contrato é gerado a partir dos schemas Zod em `src/lib/api/contracts.ts` (`npm run openapi`).
   license:
     name: Proprietário
@@ -25,6 +26,7 @@ tags:
   - name: Sensores IoT
   - name: Adote uma Ilha Verde
   - name: Relatórios
+  - name: Comercial
 paths:
   /municipalities:
     get:
@@ -213,6 +215,9 @@ paths:
       tags:
         - Prescrição
       summary: Salvar checklist de validação de campo
+      description: "**Permissão:** registrar checklist de validação em campo."
+      security:
+        - sessionCookie: []
       operationId: putBlocksIdChecklist
       parameters:
         - name: id
@@ -268,6 +273,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Sessão ausente ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: O perfil da sessão não tem a permissão exigida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
         "404":
           description: Recurso não encontrado
           content:
@@ -287,7 +304,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
@@ -494,7 +511,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
@@ -523,6 +540,9 @@ paths:
       tags:
         - Simulação
       summary: Salvar cenário de projeto
+      description: "**Permissão:** salvar cenários do simulador."
+      security:
+        - sessionCookie: []
       operationId: postSimulationScenarios
       requestBody:
         required: true
@@ -715,6 +735,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Sessão ausente ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: O perfil da sessão não tem a permissão exigida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
         "404":
           description: Recurso não encontrado
           content:
@@ -734,7 +766,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
@@ -817,7 +849,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
@@ -1043,7 +1075,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
@@ -1053,6 +1085,9 @@ paths:
       tags:
         - Ciência cidadã
       summary: Moderar relato
+      description: "**Permissão:** moderar relatos cidadãos."
+      security:
+        - sessionCookie: []
       operationId: patchCitizenReportsId
       parameters:
         - name: id
@@ -1164,6 +1199,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Sessão ausente ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: O perfil da sessão não tem a permissão exigida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
         "404":
           description: Recurso não encontrado
           content:
@@ -1183,7 +1230,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
@@ -1326,6 +1373,9 @@ paths:
       tags:
         - Adote uma Ilha Verde
       summary: Cadastrar parceria
+      description: "**Permissão:** cadastrar parcerias Adote uma Ilha Verde."
+      security:
+        - sessionCookie: []
       operationId: postAdoptions
       requestBody:
         required: true
@@ -1410,6 +1460,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Sessão ausente ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: O perfil da sessão não tem a permissão exigida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
         "404":
           description: Recurso não encontrado
           content:
@@ -1429,7 +1491,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
@@ -1478,7 +1540,12 @@ paths:
       tags:
         - Relatórios
       summary: Montar relatório para edital
-      description: Diagnóstico geográfico, justificativa epidemiológica com fontes, impacto socioeconômico (estimativas a validar no piloto) e cenários salvos.
+      description: |-
+        Diagnóstico geográfico, justificativa epidemiológica com fontes, impacto socioeconômico (estimativas a validar no piloto) e cenários salvos.
+
+        **Permissão:** gerar e exportar relatórios (PDF e DOCX).
+      security:
+        - sessionCookie: []
       operationId: postReportsPreview
       requestBody:
         required: true
@@ -1542,6 +1609,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Sessão ausente ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: O perfil da sessão não tem a permissão exigida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
         "404":
           description: Recurso não encontrado
           content:
@@ -1561,12 +1640,114 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
         "429":
-          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)"
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /pilot-requests:
+    post:
+      tags:
+        - Comercial
+      summary: Solicitar piloto
+      description: "Formulário público da landing. Único dado pessoal recebido pela plataforma: o contato institucional, com consentimento explícito e finalidade única (responder ao pedido). A resposta não ecoa o contato."
+      operationId: postPilotRequests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                organization:
+                  type: string
+                  minLength: 2
+                  maxLength: 140
+                organizationType:
+                  type: string
+                  enum:
+                    - prefeitura
+                    - governo-estadual
+                    - empresa
+                    - outro
+                municipality:
+                  type: string
+                  minLength: 2
+                  maxLength: 80
+                contactName:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                email:
+                  type: string
+                  maxLength: 160
+                  format: email
+                  pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+                interests:
+                  minItems: 1
+                  maxItems: 6
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - diagnostico
+                      - prescricao
+                      - relatorios
+                      - esg
+                      - ciencia-cidada
+                      - adote
+                message:
+                  type: string
+                  maxLength: 1000
+                consent:
+                  type: boolean
+                  const: true
+              required:
+                - organization
+                - organizationType
+                - municipality
+                - contactName
+                - email
+                - interests
+                - consent
+      responses:
+        "201":
+          description: Pedido registrado com protocolo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PilotRequestReceipt"
+        "400":
+          description: Parâmetros ou corpo inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "413":
+          description: Corpo acima de 64 KB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: Corpo deve ser application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: ipe_session
+      description: Sessão do perfil de acesso (Administrador Municipal, Técnico/Analista, Cliente Corporativo ou Leitor Público).
   schemas:
     ApiError:
       type: object
@@ -4479,4 +4660,76 @@ components:
         - fieldValidation
         - notices
         - seal
+      additionalProperties: false
+    NewPilotRequest:
+      type: object
+      properties:
+        organization:
+          type: string
+          minLength: 2
+          maxLength: 140
+        organizationType:
+          type: string
+          enum:
+            - prefeitura
+            - governo-estadual
+            - empresa
+            - outro
+        municipality:
+          type: string
+          minLength: 2
+          maxLength: 80
+        contactName:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 160
+          format: email
+          pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+        interests:
+          minItems: 1
+          maxItems: 6
+          type: array
+          items:
+            type: string
+            enum:
+              - diagnostico
+              - prescricao
+              - relatorios
+              - esg
+              - ciencia-cidada
+              - adote
+        message:
+          type: string
+          maxLength: 1000
+        consent:
+          type: boolean
+          const: true
+      required:
+        - organization
+        - organizationType
+        - municipality
+        - contactName
+        - email
+        - interests
+        - consent
+      additionalProperties: false
+    PilotRequestReceipt:
+      type: object
+      properties:
+        id:
+          type: string
+        protocol:
+          type: string
+          pattern: ^IPE-\d{4}-[A-Z0-9]{6}$
+        createdAt:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      required:
+        - id
+        - protocol
+        - createdAt
       additionalProperties: false

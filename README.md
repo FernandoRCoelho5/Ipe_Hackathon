@@ -24,6 +24,12 @@ docker compose up --build   # web em http://localhost:3000, PostGIS em localhost
 
 A API está documentada em [`docs/openapi.yaml`](docs/openapi.yaml) (OpenAPI 3.1).
 
+### Para apresentar
+
+- **[`/mapa?demo=1`](http://localhost:3000/mapa?demo=1)** (botão "Ver demonstração" da landing): entra como Administrador Municipal, abre Volta Redonda no quarteirão mais crítico e oferece o **tour guiado** (cerca de 4 min, ← → e Esc). O tour também abre pelo botão "Tour da demonstração", no cabeçalho.
+- **Perfis de acesso (RF08):** [`/entrar`](http://localhost:3000/entrar) ou o menu do perfil, no cabeçalho, trocam entre Administrador Municipal, Técnico/Analista, Cliente Corporativo (B2B) e Leitor Público. A matriz completa fica em `/acessos`.
+- Roteiro do pitch × telas: [`docs/PITCH.md`](docs/PITCH.md).
+
 | Script                                   | O que faz                                           |
 | ---------------------------------------- | --------------------------------------------------- |
 | `npm run dev`                            | Servidor de desenvolvimento (Turbopack)             |
@@ -42,22 +48,25 @@ Next.js 16.4 (App Router, Cache Components) · React 19 · TypeScript estrito ·
 ## Documentação
 
 - [Arquitetura](docs/ARCHITECTURE.md): camadas, API v1, banco e regras de dependência
-- [Contrato da API](docs/openapi.yaml): OpenAPI 3.1, 23 operações
+- [Contrato da API](docs/openapi.yaml): OpenAPI 3.1, 24 operações
 - [Backend futuro](apps/api/README.md): FastAPI + Celery + GEE sobre o mesmo contrato
 - [Decisões (ADR)](docs/DECISIONS.md)
 - [Metodologia](docs/METHODOLOGY.md): UTCI, IVTU, motor prescritivo, simulador e ESG
 - [Dados](docs/DATA.md): o que é demonstrativo e como trocar pelo pipeline real
 - [Identidade visual no código](docs/BRAND.md): tokens, contraste e uso do logotipo
 - [Roadmap](docs/ROADMAP.md): fases do MVP e caminho para o piloto real
+- [Pitch](docs/PITCH.md): cada slide do pitch e a tela (e o passo do tour) que o demonstra
 
 ## Estrutura
 
 ```
 src/
-  app/            rotas: landing, (app)/telas, privacidade, api/v1
-  components/     brand, layout, ui, map, prescription, simulator, reports, citizen, adopt, charts, data
-  domain/         modelos puros: UTCI, IVTU, prescrição, simulador, ESG + schemas Zod
-  server/         repositórios (contratos + mock), serviços, gerador de dados demonstrativos
+  app/            rotas: landing, entrar, (app)/telas e acessos, privacidade, api/v1
+  proxy.ts        sessão e permissão por rota (RF08), atalho ?demo=1
+  components/     brand, layout, ui, map, prescription, simulator, reports, citizen, adopt, charts, data,
+                  auth (perfis), tour (Modo Apresentação), landing
+  domain/         modelos puros: UTCI, IVTU, prescrição, simulador, ESG, acesso (RF08) + schemas Zod
+  server/         repositórios (contratos + mock), serviços, sessão, gerador de dados demonstrativos
   lib/            config, formatadores pt-BR, i18n, tema, logger
   stores/         estado de cliente (Zustand)
 scripts/          seed-demo-data.ts, export-sql-seed.ts, generate-openapi.ts, copy-maplibre-worker.mjs

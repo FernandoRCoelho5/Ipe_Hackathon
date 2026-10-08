@@ -99,7 +99,7 @@ export function HeatMapScreen() {
   return (
     <div className="flex flex-col lg:h-[calc(100dvh-4.5rem-1px)] lg:flex-row">
       <div className="relative flex flex-col lg:min-w-0 lg:flex-1">
-        <div className="relative h-[62dvh] lg:absolute lg:inset-0 lg:h-auto">
+        <div className="relative h-[62dvh] lg:absolute lg:inset-0 lg:h-auto" data-tour="map-canvas">
           <ThermalMap
             label={messages.map.regionLabel(municipality.name)}
             bbox={dataBbox ?? municipality.bbox}
@@ -125,6 +125,7 @@ export function HeatMapScreen() {
           <div className="flex flex-col gap-3">
             <section
               aria-labelledby="map-title"
+              data-tour="map-controls"
               className={cn(card, "flex flex-col gap-4 lg:pointer-events-auto")}
             >
               <div className="flex flex-col gap-1">
@@ -165,6 +166,7 @@ export function HeatMapScreen() {
       <aside
         ref={asideRef}
         aria-label={selectedId ? messages.map.panel.label : messages.map.overview.title}
+        data-tour={selectedId ? "block-panel" : "map-overview"}
         className="border-t border-line bg-surface lg:w-104 lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l"
       >
         {selectedId ? (

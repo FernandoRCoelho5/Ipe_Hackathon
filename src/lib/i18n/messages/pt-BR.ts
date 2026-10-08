@@ -29,7 +29,9 @@ export const ptBR = {
     estimates: "Estimativas a validar no piloto.",
     privacyTitle: "Privacidade e LGPD",
     privacySummary:
-      "O Ipê não armazena dados pessoais. Relatos cidadãos guardam apenas texto, coordenadas e categoria, com identificadores anônimos.",
+      "O Ipê não guarda dados pessoais de cidadãos: relatos têm apenas texto, coordenadas e categoria, com identificadores anônimos. O único contato pessoal recebido é o de quem pede um piloto, com consentimento.",
+    pilotPrivacy:
+      "LGPD: seu nome e e-mail servem só para responder a este pedido e não são compartilhados.",
   },
 
   demoData: {
@@ -58,6 +60,7 @@ export const ptBR = {
     groups: {
       diagnosis: "Diagnóstico e ação",
       funding: "Captação e engajamento",
+      management: "Gestão",
     },
     items: {
       map: {
@@ -83,6 +86,10 @@ export const ptBR = {
       adopt: {
         label: "Adote uma Ilha Verde",
         description: "Parcerias, NDVI e zeladoria preditiva das áreas adotadas.",
+      },
+      access: {
+        label: "Perfis e acessos",
+        description: "Matriz de permissões por perfil: telas e ações.",
       },
     },
   },
@@ -342,6 +349,9 @@ export const ptBR = {
     generatingDocx: "Gerando DOCX…",
     exportError: "Não foi possível gerar o arquivo. Tente novamente.",
     outdated: "Os dados do formulário mudaram. Gere o relatório novamente para atualizar.",
+    example: "Preencher com exemplo",
+    publicFundingLocked:
+      "Editais de recurso público exigem um perfil municipal (Administrador ou Técnico). O seu perfil gera o relatório ESG corporativo.",
   },
 
   citizen: {
@@ -474,12 +484,486 @@ export const ptBR = {
     },
   },
 
+  auth: {
+    signInEyebrow: "Acesso de demonstração",
+    signInTitle: "Escolha um perfil de acesso",
+    signInLead:
+      "Cada perfil vê e altera partes diferentes da plataforma. Escolha um para entrar; dá para trocar a qualquer momento pelo menu do perfil, no cabeçalho.",
+    signInPilot:
+      "Autenticação simulada para a demonstração. No piloto, o acesso usa a conta institucional (gov.br ou o provedor do cliente), com os mesmos perfis e permissões.",
+    enterAs: (role: string) => `Entrar como ${role}`,
+    canDo: "Pode",
+    cannotDo: "Não pode",
+    allScreens: "Acessa todas as telas",
+    screensExcept: (screens: string) => `Acessa todas as telas, exceto ${screens}`,
+    readOnly: "Somente consulta",
+    menuLabel: (role: string) => `Perfil de acesso: ${role}`,
+    menuTitle: "Perfil ativo",
+    switchTitle: "Trocar perfil (demonstração)",
+    current: "Atual",
+    manage: "Ver perfis e acessos",
+    signOut: "Sair",
+    loading: "Carregando perfil…",
+    denied: (role: string, action: string) => `O perfil ${role} não permite ${action}.`,
+    deniedHint: "Troque de perfil no cabeçalho para testar.",
+    moderationReadOnly: (role: string) =>
+      `Consulta apenas: o perfil ${role} não modera relatos. Novos relatos continuam abertos a todos.`,
+    restrictedEyebrow: "Acesso restrito",
+    restrictedTitle: (screen: string) => `${screen} não está disponível para o seu perfil`,
+    restrictedLead: (role: string, permission: string) =>
+      `O perfil ${role} não tem a permissão “${permission}”. Na demonstração, escolha abaixo um perfil que tenha acesso.`,
+    restrictedFallback: "Esta tela não está disponível para o seu perfil.",
+    backToMap: "Voltar ao mapa",
+  },
+
+  access: {
+    eyebrow: "07 · Gestão de acessos",
+    title: "Perfis e acessos",
+    description:
+      "Quem vê e quem altera cada módulo. A mesma matriz controla a navegação, os botões da interface, o proxy das telas e a API.",
+    profilesTitle: "Perfis",
+    matrixTitle: "Matriz de permissões",
+    matrixCaption: "Permissões por perfil: telas e ações",
+    screensGroup: "Telas",
+    actionsGroup: "Ações",
+    allowed: "Permitido",
+    notAllowed: "Não permitido",
+    publicActionsTitle: "Sempre abertos",
+    publicActions:
+      "Consultar diagnósticos, rodar simulações sem salvar e enviar relatos cidadãos anônimos não exigem permissão especial.",
+    pilotTitle: "No piloto",
+    pilot:
+      "A sessão de demonstração dá lugar ao login institucional (OIDC: gov.br ou o provedor do cliente). Usuários e perfis ficam nas tabelas users e roles do PostGIS; a matriz acima continua a mesma.",
+  },
+
+  tour: {
+    start: "Tour da demonstração",
+    startShort: "Tour",
+    regionLabel: "Tour guiado da demonstração",
+    progress: (step: number, total: number) => `Passo ${step} de ${total}`,
+    duration: "Cerca de 4 minutos",
+    previous: "Anterior",
+    next: "Próximo",
+    finish: "Concluir",
+    begin: "Começar o tour",
+    explore: "Explorar sozinho",
+    skip: "Pular tour",
+    keyboardHint: "Setas ← → navegam; Esc encerra.",
+    switchingProfile:
+      "O tour percorre todas as telas e usa o perfil Administrador Municipal. Ao começar, o perfil será trocado.",
+    waiting: "Abrindo a tela…",
+    steps: {
+      intro: {
+        title: "Modo apresentação",
+        body: "Um roteiro pelo fluxo do pitch: do mapa de calor de Volta Redonda ao relatório para captar recursos, passando pela prescrição e pelo simulador. Os dados são demonstrativos.",
+      },
+      map: {
+        title: "Ilhas de calor por quarteirão",
+        body: "Cada polígono é um quarteirão, colorido pela sensação térmica do pedestre (UTCI) às 14h, e não pela temperatura do telhado que o satélite mede.",
+      },
+      layers: {
+        title: "Camadas e horário",
+        body: "Alterne entre sensação térmica, superfície, vulnerabilidade, copa e drenagem. Anime o dia das 08h às 18h para ver a cidade aquecer.",
+      },
+      block: {
+        title: "O quarteirão mais crítico",
+        body: "O primeiro do ranking IVTU: pico de sensação térmica, curva hora a hora, quem está exposto e a intervenção recomendada.",
+      },
+      prescription: {
+        title: "Prescrição com justificativa",
+        body: "Arborização, pavimento permeável ou pintura atérmica, em prazo tático ou estruturante, sempre com o porquê, os locais potenciais e o nível de confiança.",
+      },
+      checklist: {
+        title: "Validação em campo",
+        body: "O sistema indica locais potenciais; o técnico confirma fiação, largura da calçada e redes subterrâneas antes da obra.",
+      },
+      simulator: {
+        title: "Simulador what-if",
+        body: "O cenário recomendado já vem aplicado: árvores por espécie, pavimento permeável e pintura atérmica. Mexa nos controles e veja o efeito.",
+      },
+      result: {
+        title: "Alívio térmico estimado",
+        body: "Redução da sensação térmica no pico solar, com faixa de incerteza, evapotranspiração e chuva retida. Salve o cenário para usá-lo no relatório.",
+      },
+      report: {
+        title: "Relatório para o Fundo Clima",
+        body: "Diagnóstico, justificativa epidemiológica e cenários num documento pronto para o edital, em PDF ou DOCX editável.",
+      },
+      citizen: {
+        title: "Ciência cidadã",
+        body: "Relatos anônimos chegam pelo WhatsApp e pela web, passam pelo filtro antispam e pela moderação. Guardamos só texto, coordenadas e categoria.",
+      },
+      sensors: {
+        title: "Sensores IoT e calibração",
+        body: "Dez nós ESP32 medem temperatura e umidade nos corredores viários e calibram o modelo: viés, erro e correlação entre sensor e modelo.",
+      },
+      adopt: {
+        title: "Adote uma Ilha Verde",
+        body: "Empresas adotam áreas prioritárias; o satélite acompanha o verde (NDVI) e a zeladoria preditiva avisa o que fazer e quando.",
+      },
+      profiles: {
+        title: "Perfis de acesso",
+        body: "Quem vê e quem altera cada módulo depende do perfil. Troque aqui para ver a plataforma como técnico, cliente corporativo ou leitor público.",
+      },
+    },
+  },
+
+  presentation: {
+    ready: "Modo apresentação pronto",
+    readyDetail: (municipality: string, block: string) =>
+      `${municipality}, quarteirão mais crítico (${block}) selecionado e cenário recomendado no simulador.`,
+  },
+
   landing: {
-    eyebrow: "Plataforma de inteligência territorial",
-    title: "Saiba em qual rua o calor é pior — e o que fazer em cada quarteirão.",
-    lead: "O Ipê traduz dados de satélite, clima e mapas urbanos em diagnóstico de rua, prescrição de infraestrutura verde e relatórios prontos para captar recursos.",
+    nav: {
+      label: "Seções da página",
+      problem: "Problema",
+      solution: "Solução",
+      comparison: "Diferenciais",
+      how: "Como funciona",
+      impact: "Impacto",
+      pilot: "Piloto",
+    },
+    signIn: "Entrar",
     ctaDemo: "Ver demonstração",
-    regionNote: "Piloto no Sul Fluminense: Volta Redonda, Barra Mansa e Resende.",
+    ctaDemoShort: "Demonstração",
+    ctaPilot: "Solicitar piloto",
+    hero: {
+      eyebrow: "Plataforma de inteligência territorial",
+      title: "Saiba em qual rua o calor é pior — e o que fazer em cada quarteirão.",
+      lead: "O Ipê traduz dados de satélite, clima e mapas urbanos em diagnóstico de rua, prescrição de infraestrutura verde e relatórios prontos para captar recursos.",
+      regionNote: "Piloto no Sul Fluminense: Volta Redonda, Barra Mansa e Resende.",
+      stats: [
+        { value: "560 mil+", label: "habitantes nos três municípios (Censo 2022)" },
+        { value: "08h–18h", label: "sensação térmica do pedestre, hora a hora" },
+        { value: "1 quarteirão", label: "unidade de diagnóstico e de decisão" },
+      ],
+      visualLabel: (street: string, municipality: string) =>
+        `Prévia do mapa de calor: ${street}, ${municipality}`,
+      visualCaption: (municipality: string) => `Dados demonstrativos · ${municipality}`,
+      peak: "UTCI no pico",
+      recommendation: "Recomendação",
+    },
+    problem: {
+      eyebrow: "01 · O problema",
+      title: "O calor extremo mata. E a prefeitura não sabe em qual rua agir.",
+      deaths: "119.643",
+      deathsLabel:
+        "mortes associadas a ondas de calor no Brasil entre 2000 e 2019; cerca de 80% eram idosos com 65 anos ou mais.",
+      deathsSource: "Fiocruz/UFBA, 2026",
+      gaps: [
+        {
+          title: "O satélite vê pixels, não a rua",
+          body: "Em 30 m, telhado, asfalto e copa de árvore viram uma média. A calçada onde o pedestre espera o ônibus desaparece.",
+        },
+        {
+          title: "Superfície não é sensação térmica",
+          body: "A temperatura do telhado não diz o que sente quem está na rua. Sombra, vento e umidade mudam tudo.",
+        },
+        {
+          title: "Sem justificativa técnica, não há recurso",
+          body: "Editais pedem diagnóstico, priorização e impacto esperado. Sem isso, o projeto não sai do papel.",
+        },
+      ],
+      satelliteTitle: "O que o satélite entrega",
+      satelliteBody: "Temperatura de superfície em pixels de 30 m.",
+      ipeTitle: "O que o Ipê entrega",
+      ipeBody: "Sensação térmica do pedestre (UTCI) por quarteirão, com a ação recomendada.",
+      comparisonCaption: (neighborhood: string, municipality: string) =>
+        `Mesmo trecho de ${neighborhood}, ${municipality}. Dados demonstrativos.`,
+      surfaceScale: "Superfície (°C)",
+      utciScale: "Sensação térmica (UTCI, °C)",
+    },
+    solution: {
+      eyebrow: "02 · A solução",
+      title: "Dos dados à obra, em três etapas",
+      steps: [
+        {
+          title: "Dados",
+          subtitle: "Satélite, clima e cidade",
+          items: [
+            "Landsat 8/9 e Sentinel-2: temperatura de superfície, NDVI e NDWI",
+            "Estações do INMET na região",
+            "OpenStreetMap: ruas, calçadas e edificações",
+            "IBGE e Ipea: vulnerabilidade social",
+          ],
+        },
+        {
+          title: "Inteligência",
+          subtitle: "Modelos explicáveis",
+          items: [
+            "UTCI: sensação térmica do pedestre de hora em hora",
+            "IVTU: vulnerabilidade térmica de 0 a 100 por quarteirão",
+            "Motor prescritivo com regras georreferenciadas: a IA apoia, não decide sozinha",
+          ],
+        },
+        {
+          title: "Entregas",
+          subtitle: "Decisão e captação",
+          items: [
+            "Mapa de calor e ranking de prioridade",
+            "Prescrição tática ou estruturante, com checklist de campo",
+            "Simulador what-if com faixa de incerteza",
+            "Relatórios para Fundo Clima/BNDES, FECAM e Ambiente Resiliente RJ",
+          ],
+        },
+      ],
+      differentiatorsTitle: "Diferenciais visíveis no produto",
+      differentiators: [
+        "Prescritivo: diz o que fazer em cada quarteirão",
+        "Sensação térmica do pedestre (UTCI)",
+        "Calor e drenagem juntos",
+        "Escala de rua",
+        "Ligado ao financiamento",
+        "Feito para o técnico municipal, sem exigir especialista em GIS",
+      ],
+    },
+    comparison: {
+      eyebrow: "03 · Diferenciais",
+      title: "Onde o Ipê se diferencia",
+      caption: "Comparação entre o Ipê e ferramentas de referência",
+      criterion: "Critério",
+      yes: "Sim",
+      no: "Não",
+      partial: "Parcial",
+      footnote:
+        "Comparação pelo foco principal de cada ferramenta, conforme o material público de cada uma.",
+      tools: ["Google Tree Canopy", "Tree Equity Score", "ENVI-met", "UrbVerde (USP)", "Ipê"],
+      /** Valores por ferramenta, na ordem de `tools`: sim, não, parcial ou texto livre. */
+      rows: [
+        {
+          label: "Foco principal",
+          values: [
+            { kind: "text", note: "Cobertura arbórea" },
+            { kind: "text", note: "Equidade arbórea, só nos EUA" },
+            { kind: "text", note: "Microclima de um projeto" },
+            { kind: "text", note: "Diagnóstico urbano, só em SP" },
+            { kind: "text", note: "Diagnóstico, prescrição e captação" },
+          ],
+        },
+        {
+          label: "Diz o que fazer em cada quarteirão",
+          values: [
+            { kind: "no", note: "" },
+            { kind: "partial", note: "Só onde plantar árvores" },
+            { kind: "partial", note: "Simula o que o especialista desenha" },
+            { kind: "no", note: "" },
+            { kind: "yes", note: "Arborização, piso permeável e pintura atérmica" },
+          ],
+        },
+        {
+          label: "Sensação térmica do pedestre",
+          values: [
+            { kind: "no", note: "" },
+            { kind: "no", note: "" },
+            { kind: "yes", note: "" },
+            { kind: "no", note: "" },
+            { kind: "yes", note: "UTCI de hora em hora" },
+          ],
+        },
+        {
+          label: "Calor e drenagem juntos",
+          values: [
+            { kind: "no", note: "" },
+            { kind: "no", note: "" },
+            { kind: "no", note: "" },
+            { kind: "no", note: "" },
+            { kind: "yes", note: "" },
+          ],
+        },
+        {
+          label: "Cidade inteira, sem projeto a projeto",
+          values: [
+            { kind: "yes", note: "" },
+            { kind: "yes", note: "" },
+            { kind: "no", note: "Um projeto por vez" },
+            { kind: "yes", note: "" },
+            { kind: "yes", note: "" },
+          ],
+        },
+        {
+          label: "Relatório para captar recursos",
+          values: [
+            { kind: "no", note: "" },
+            { kind: "no", note: "" },
+            { kind: "no", note: "" },
+            { kind: "no", note: "" },
+            { kind: "yes", note: "Fundo Clima, FECAM e Ambiente Resiliente RJ" },
+          ],
+        },
+        {
+          label: "Uso sem especialista em GIS",
+          values: [
+            { kind: "yes", note: "" },
+            { kind: "yes", note: "" },
+            { kind: "no", note: "Ferramenta paga, para especialistas" },
+            { kind: "yes", note: "" },
+            { kind: "yes", note: "" },
+          ],
+        },
+      ],
+    },
+    how: {
+      eyebrow: "04 · Como funciona",
+      title: "Arquitetura pronta para escalar",
+      blocks: [
+        {
+          title: "Fontes",
+          items: [
+            "Landsat 8/9 e Sentinel-2",
+            "INMET",
+            "OpenStreetMap",
+            "IBGE e Ipea",
+            "Sensores IoT e relatos cidadãos",
+          ],
+        },
+        {
+          title: "Processamento",
+          items: [
+            "Google Earth Engine / Planetary Computer",
+            "FastAPI + Celery",
+            "PostgreSQL + PostGIS",
+          ],
+        },
+        {
+          title: "Modelos",
+          items: ["UTCI", "IVTU", "Motor prescritivo", "Simulador e ESG"],
+        },
+        {
+          title: "Entregas",
+          items: [
+            "WebGIS por quarteirão",
+            "Relatórios PDF e DOCX",
+            "API aberta (OpenAPI)",
+            "Selo Adote uma Ilha Verde",
+          ],
+        },
+      ],
+      scale: "Um novo município é um novo recorte territorial: nenhuma tela muda.",
+      timelineTitle: "Piloto em 6 meses",
+      timeline: [
+        {
+          month: "Mês 1",
+          title: "Dados",
+          body: "Pipeline de satélite, INMET, OSM e IBGE para os três municípios.",
+        },
+        {
+          month: "Mês 2",
+          title: "Plataforma",
+          body: "Backend FastAPI e PostGIS em produção; primeira calibração do UTCI.",
+        },
+        {
+          month: "Mês 3",
+          title: "Sensores",
+          body: "Instalação dos 10 nós IoT e calibração sensor × modelo.",
+        },
+        {
+          month: "Mês 4",
+          title: "Campo",
+          body: "Técnicos municipais validam prescrições com o checklist de campo.",
+        },
+        {
+          month: "Mês 5",
+          title: "Captação",
+          body: "Relatórios para editais e primeiras parcerias Adote uma Ilha Verde.",
+        },
+        {
+          month: "Mês 6",
+          title: "Escala",
+          body: "Avaliação de resultados, ajuste do IVTU e plano de expansão.",
+        },
+      ],
+      investment: "R$ 218.020",
+      investmentLabel: "Investimento total do piloto de 6 meses",
+    },
+    impact: {
+      eyebrow: "05 · Impacto esperado",
+      title: "O que está em jogo",
+      seal: "Estimativas a validar no piloto",
+      columns: [
+        {
+          title: "Saúde pública",
+          value: "2.644",
+          statement:
+            "mortes prematuras seriam evitadas com 30% de cobertura arbórea em 93 cidades europeias.",
+          source: "The Lancet",
+          ipe: "O IVTU prioriza quarteirões com mais idosos e pedestres expostos ao calor.",
+        },
+        {
+          title: "Trabalho e produtividade",
+          value: "2,2%",
+          statement: "das horas de trabalho no mundo serão perdidas por estresse térmico até 2030.",
+          source: "OIT",
+          ipe: "Conforto térmico em pátios industriais, centros logísticos e no entorno das empresas.",
+        },
+        {
+          title: "Território",
+          value: "560 mil+",
+          statement: "habitantes em Volta Redonda, Barra Mansa e Resende.",
+          source: "IBGE, Censo 2022",
+          ipe: "Calor e drenagem tratados juntos, com justificativa técnica pronta para os editais.",
+        },
+      ],
+    },
+    adoption: {
+      eyebrow: "06 · Adoção e escala",
+      title: "Do contrato com empresas à política pública",
+      steps: [
+        {
+          title: "Empresas (ESG)",
+          body: "Indústrias, construtoras, shoppings e parques logísticos contratam diagnóstico e relatório ESG.",
+        },
+        {
+          title: "Relatórios",
+          body: "A mesma base gera a justificativa técnica que os editais pedem.",
+        },
+        {
+          title: "Captação",
+          body: "Fundo Clima/BNDES, FECAM e Ambiente Resiliente RJ financiam as intervenções.",
+        },
+        {
+          title: "Prefeituras",
+          body: "Meio Ambiente, Planejamento, Obras e Defesa Civil passam a decidir com a plataforma.",
+        },
+      ],
+      continuity: [
+        {
+          title: "Continuidade",
+          body: "Adote uma Ilha Verde e revisita de satélite a cada 5 a 8 dias mantêm o verde vivo.",
+        },
+        {
+          title: "Escala",
+          body: "Para atender outra cidade, basta processar o novo recorte territorial.",
+        },
+      ],
+      ctaTitle: "Pronto para ver na prática?",
+      ctaBody:
+        "A demonstração abre em Volta Redonda, no quarteirão mais crítico, com um tour guiado.",
+    },
+    pilot: {
+      eyebrow: "Piloto",
+      title: "Solicite um piloto para o seu município ou empresa",
+      lead: "Conte o que você precisa. Respondemos com escopo, cronograma e investimento.",
+      organization: "Organização",
+      organizationPlaceholder: "Ex.: Prefeitura de Volta Redonda",
+      organizationType: "Tipo de organização",
+      municipality: "Município de interesse",
+      municipalityPlaceholder: "Ex.: Volta Redonda",
+      contactName: "Seu nome",
+      email: "E-mail institucional",
+      interests: "Módulos de interesse",
+      message: "Mensagem (opcional)",
+      messagePlaceholder: "Ex.: Queremos priorizar corredores de ônibus antes do próximo verão.",
+      consent:
+        "Autorizo o uso destes dados de contato apenas para responder a este pedido, conforme a LGPD.",
+      submit: "Enviar pedido",
+      submitting: "Enviando…",
+      successTitle: "Pedido recebido",
+      success: (protocol: string) => `Protocolo ${protocol}. Respondemos pelo e-mail informado.`,
+      demoNotice:
+        "Nesta demonstração, o pedido fica só na memória do servidor e é descartado ao reiniciar.",
+      another: "Enviar outro pedido",
+    },
   },
 
   errors: {

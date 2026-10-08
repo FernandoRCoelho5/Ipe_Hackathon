@@ -2,7 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileText } from "lucide-react";
-import { useEffect } from "react";
+import { Lock } from "lucide-react";
+import { useEffect, useEffectEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,11 @@ interface ReportFormProps {
   onSubmit: (values: ReportFormOutput, snapshot: string) => void;
   /** Snapshot atual a cada mudança do formulário. */
   onSnapshotChange?: (snapshot: string) => void;
+  /** Perfil pode usar editais de recurso público (senão, só o relatório ESG). */
+  canUsePublicFunding: boolean;
+  /** Exemplo a aplicar e enviar (cada novo objeto preenche e gera o relatório). */
+  example?: ReportFormValues | null;
+  onExampleApplied?: () => void;
 }
 
 const input =
@@ -41,6 +47,9 @@ export function ReportForm({
   submitting,
   onSubmit,
   onSnapshotChange,
+  canUsePublicFunding,
+  example,
+  onExampleApplied,
 }: ReportFormProps) {
   const t = messages.reports;
   const {
@@ -48,6 +57,7 @@ export function ReportForm({
     handleSubmit,
     setValue,
     getValues,
+    reset,
     control,
     formState: { errors },
   } = useForm<ReportFormValues, unknown, ReportFormOutput>({
@@ -64,6 +74,25 @@ export function ReportForm({
   const snapshot = JSON.stringify(useWatch({ control }));
   useEffect(() => onSnapshotChange?.(snapshot), [snapshot, onSnapshotChange]);
 
+  // Perfil sem editais públicos (B2B): o formulário parte do relatório ESG.
+  const programId = useWatch({ control, name: "programId" });
+  const isPublic = (id: string | undefined) =>
+    programs?.find((p) => p.id === id)?.audience === "publico";
+  const lockedProgram = !canUsePublicFunding && isPublic(programId);
+  useEffect(() => {
+    if (lockedProgram) setValue("programId", "esg-corporativo");
+  }, [lockedProgram, setValue]);
+
+  const submit = handleSubmit((values) => onSubmit(values, JSON.stringify(getValues())));
+  const applyExample = useEffectEvent((values: ReportFormValues) => {
+    reset(values);
+    void submit();
+    onExampleApplied?.();
+  });
+  useEffect(() => {
+    if (example) applyExample(example);
+  }, [example]);
+
   const error = (name: keyof ReportFormValues) => {
     const message = errors[name]?.message;
     return message ? (
@@ -76,11 +105,7 @@ export function ReportForm({
     errors[name] ? `${name}-error` : undefined;
 
   return (
-    <form
-      noValidate
-      onSubmit={handleSubmit((values) => onSubmit(values, JSON.stringify(getValues())))}
-      className="flex flex-col gap-6"
-    >
+    <form noValidate onSubmit={submit} className="flex flex-col gap-6" data-tour="report-form">
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-semibold text-fg">{t.program}</legend>
         {programs ? (
@@ -88,11 +113,12 @@ export function ReportForm({
             {programs.map((program) => (
               <label
                 key={program.id}
-                className="flex cursor-pointer gap-3 rounded-control border border-line bg-surface p-3 transition-colors hover:border-line-strong has-checked:border-primary has-checked:bg-accent-soft has-focus-visible:outline-2 has-focus-visible:outline-focus"
+                className="flex cursor-pointer gap-3 rounded-control border border-line bg-surface p-3 transition-colors hover:border-line-strong has-checked:border-primary has-checked:bg-accent-soft has-focus-visible:outline-2 has-focus-visible:outline-focus has-disabled:cursor-not-allowed has-disabled:opacity-60"
               >
                 <input
                   type="radio"
                   value={program.id}
+                  disabled={!canUsePublicFunding && program.audience === "publico"}
                   {...register("programId")}
                   className="mt-1 accent-accent"
                 />
@@ -107,6 +133,12 @@ export function ReportForm({
           </div>
         ) : (
           <Skeleton className="h-48" />
+        )}
+        {!canUsePublicFunding && (
+          <p className="flex items-start gap-2 text-xs text-fg-muted">
+            <Lock aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+            {t.publicFundingLocked}
+          </p>
         )}
       </fieldset>
 

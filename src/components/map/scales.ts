@@ -240,6 +240,10 @@ export function utciColor(utci: number): string {
   return colorAt((MAP_LAYERS.utci as ContinuousLayer).stops, utci);
 }
 
+export function lstColor(lst: number): string {
+  return colorAt((MAP_LAYERS.lst as ContinuousLayer).stops, lst);
+}
+
 /** Luminância relativa (WCAG 2.1). */
 export function relativeLuminance(hex: string): number {
   const [r, g, b] = parseHex(hex).map((c) => {

@@ -232,3 +232,45 @@
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/*
+ * Revelação sutil ao rolar (landing). Animação guiada pela rolagem, sem JavaScript:
+ * só onde o navegador suporta `animation-timeline` e o usuário não pediu menos movimento.
+ */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    stroke-opacity: 0.9;
+    stroke-width: 3;
+  }
+  100% {
+    stroke-opacity: 0;
+    stroke-width: 18;
+  }
+}
+
+@utility pulse-ring {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: pulse-ring 2.4s ease-out infinite;
+  }
+}

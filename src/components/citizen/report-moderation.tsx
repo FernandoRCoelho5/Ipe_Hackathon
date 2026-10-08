@@ -1,8 +1,17 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, ChevronLeft, ChevronRight, MapPin, MessageCircle, Globe } from "lucide-react";
+import {
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  Lock,
+  MapPin,
+  MessageCircle,
+} from "lucide-react";
 import { useState } from "react";
+import { usePermission } from "@/components/auth/use-session";
 import { QueryError } from "@/components/data/query-error";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,6 +57,7 @@ export function ReportModeration({
   const [page, setPage] = useState(1);
   const [now] = useState(() => Date.now());
   const [announcement, setAnnouncement] = useState("");
+  const permission = usePermission("citizen-report:moderate");
 
   const list = useQuery(
     engagementQueries.citizenReports({
@@ -72,7 +82,13 @@ export function ReportModeration({
   const meta = list.data?.meta;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-tour="citizen-moderation" className="flex flex-col gap-4">
+      {permission.denied && permission.role && (
+        <p className="flex items-start gap-2 rounded-control bg-surface-muted px-3 py-2 text-xs text-fg-muted">
+          <Lock aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+          {messages.auth.moderationReadOnly(permission.role.label)}
+        </p>
+      )}
       <div role="group" aria-label={t.statusTabsLabel} className="flex flex-wrap gap-1.5">
         {REPORT_STATUSES.map((s) => (
           <button
@@ -176,17 +192,18 @@ export function ReportModeration({
                   <MapPin aria-hidden />
                   {t.locate}
                 </Button>
-                {REPORT_STATUSES.filter((s) => s !== report.status).map((next) => (
-                  <Button
-                    key={next}
-                    size="sm"
-                    variant={next === "validado" ? "secondary" : "outline"}
-                    disabled={moderate.isPending}
-                    onClick={() => moderate.mutate({ id: report.id, next })}
-                  >
-                    {t.actions[next]}
-                  </Button>
-                ))}
+                {permission.allowed &&
+                  REPORT_STATUSES.filter((s) => s !== report.status).map((next) => (
+                    <Button
+                      key={next}
+                      size="sm"
+                      variant={next === "validado" ? "secondary" : "outline"}
+                      disabled={moderate.isPending}
+                      onClick={() => moderate.mutate({ id: report.id, next })}
+                    >
+                      {t.actions[next]}
+                    </Button>
+                  ))}
               </div>
             </li>
           ))}

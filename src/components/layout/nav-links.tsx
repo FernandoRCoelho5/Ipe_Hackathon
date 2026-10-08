@@ -3,20 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { isNavItemActive, navGroups } from "@/lib/config/navigation";
+import { isNavItemActive, visibleNavGroups } from "@/lib/config/navigation";
+import { useSessionStore } from "@/stores/session-store";
 
 interface NavLinksProps {
   collapsed?: boolean;
   onNavigate?: () => void;
 }
 
-/** Lista de navegação compartilhada pela barra lateral e pela gaveta mobile. */
+/** Lista de navegação (só o que o perfil pode abrir), na barra lateral e na gaveta mobile. */
 export function NavLinks({ collapsed = false, onNavigate }: NavLinksProps) {
   const pathname = usePathname();
+  const role = useSessionStore((state) => state.role);
 
   return (
     <div className="flex flex-col gap-6">
-      {navGroups.map((group) => (
+      {visibleNavGroups(role).map((group) => (
         <div key={group.id} className="flex flex-col gap-1">
           <p
             className={cn(

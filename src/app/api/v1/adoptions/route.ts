@@ -12,7 +12,10 @@ export const GET = withApi(async (request) => {
 });
 
 /** POST /api/v1/adoptions — cadastro de nova parceria. */
-export const POST = withApi(async (request) => {
-  const input = await parseJson(request, newAdoptionRequestSchema);
-  return json(await createAdoption(input), { status: 201 });
-});
+export const POST = withApi(
+  async (request) => {
+    const input = await parseJson(request, newAdoptionRequestSchema);
+    return json(await createAdoption(input), { status: 201 });
+  },
+  { permission: "adoption:create" },
+);

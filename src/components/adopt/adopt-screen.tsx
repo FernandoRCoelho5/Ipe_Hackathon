@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CalendarClock, Plus, Trees } from "lucide-react";
 import { useState } from "react";
+import { PermissionNote } from "@/components/auth/permission-note";
+import { usePermission } from "@/components/auth/use-session";
 import { QueryError } from "@/components/data/query-error";
 import { useActiveMunicipality } from "@/components/layout/municipality-context";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +34,7 @@ export function AdoptScreen() {
   // Data local de hoje, fixada na montagem (tarefas vencidas = atrasadas).
   const [today] = useState(() => formatIsoDate(Date.now()));
   const t = messages.adopt;
+  const canCreate = usePermission("adoption:create").allowed;
 
   const list = useQuery({
     ...engagementQueries.adoptions(municipality?.id ?? ""),
@@ -43,7 +46,7 @@ export function AdoptScreen() {
 
   const items = list.data.data;
   const selected = items.find((s) => s.adoption.id === params.get("parceria")) ?? items[0] ?? null;
-  const formOpen = params.get("nova") === "1";
+  const formOpen = params.get("nova") === "1" && canCreate;
 
   const totals = items.reduce(
     (acc, s) => ({
@@ -63,10 +66,17 @@ export function AdoptScreen() {
           <Stat label={t.kpis.co2} value={`${formatDecimal(totals.co2 / 1000)} t`} />
           <Stat label={t.kpis.greenArea} value={`${formatInteger(totals.green)} m²`} />
         </dl>
-        <Button size="lg" onClick={() => setParams({ nova: "1" }, { push: true })}>
-          <Plus aria-hidden />
-          {t.form.open}
-        </Button>
+        <div className="flex flex-col items-end gap-2">
+          <Button
+            size="lg"
+            disabled={!canCreate}
+            onClick={() => setParams({ nova: "1" }, { push: true })}
+          >
+            <Plus aria-hidden />
+            {t.form.open}
+          </Button>
+          <PermissionNote permission="adoption:create" className="max-w-xs text-right" />
+        </div>
       </div>
 
       <p role="status" className="text-sm font-medium text-accent empty:hidden">
@@ -133,7 +143,9 @@ export function AdoptScreen() {
             </ul>
           </section>
           {selected && (
-            <AdoptionDetail key={selected.adoption.id} summary={selected} today={today} />
+            <div data-tour="adoption-detail">
+              <AdoptionDetail key={selected.adoption.id} summary={selected} today={today} />
+            </div>
           )}
         </div>
       )}

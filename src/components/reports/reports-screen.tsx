@@ -1,8 +1,9 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { FileDown, FileText, FileType2 } from "lucide-react";
-import { useState } from "react";
+import { FileDown, FileText, FileType2, WandSparkles } from "lucide-react";
+import { useMemo, useState } from "react";
+import { usePermission } from "@/components/auth/use-session";
 import { QueryError } from "@/components/data/query-error";
 import { useActiveMunicipality } from "@/components/layout/municipality-context";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,9 @@ import { engagementQueries, mutations, queries } from "@/lib/api/queries";
 import { downloadBlob } from "@/lib/download";
 import { messages } from "@/lib/i18n";
 import { logger } from "@/lib/logger";
-import { ReportForm } from "./report-form";
+import { useUrlState } from "@/lib/use-url-state";
+import { buildReportExample } from "./report-example";
+import { ReportForm, type ReportFormValues } from "./report-form";
 import { buildReportOutline } from "./report-outline";
 import { ReportPreview } from "./report-preview";
 
@@ -36,8 +39,12 @@ export function ReportsScreen() {
 function ReportsWorkspace({ municipalityId }: { municipalityId: string }) {
   const t = messages.reports;
   const programs = useQuery(engagementQueries.programs());
-  const ranking = useQuery(queries.ranking({ municipality: municipalityId, pageSize: 1 }));
+  // O topo do ranking alimenta o exemplo; `meta.neighborhoods` lista todos os bairros.
+  const ranking = useQuery(queries.ranking({ municipality: municipalityId, pageSize: 20 }));
   const scenarios = useQuery(queries.scenarios(municipalityId));
+  const canUsePublicFunding = !usePermission("report:public-funding").denied;
+  const [params, setParams] = useUrlState();
+  const [example, setExample] = useState<ReportFormValues | null>(null);
 
   const [report, setReport] = useState<ReportDocument | null>(null);
   const [submittedSnapshot, setSubmittedSnapshot] = useState<string | null>(null);
@@ -49,6 +56,24 @@ function ReportsWorkspace({ municipalityId }: { municipalityId: string }) {
     mutationFn: mutations.reportPreview,
     onSuccess: (doc) => setReport(doc),
   });
+
+  // Exemplo para a demonstração: memorizado para o formulário aplicá-lo uma única vez.
+  const topRows = programs.data ? ranking.data?.data : undefined;
+  const saved = scenarios.data?.data;
+  const readyExample = useMemo(
+    () =>
+      topRows && saved
+        ? buildReportExample({
+            municipalityId,
+            topRows,
+            scenarios: saved,
+            publicFunding: canUsePublicFunding,
+          })
+        : null,
+    [municipalityId, topRows, saved, canUsePublicFunding],
+  );
+  /** `?exemplo=1` (tour do Modo Apresentação) preenche e gera o relatório ao abrir. */
+  const wantsExample = params.get("exemplo") === "1";
 
   const outline = report ? buildReportOutline(report) : null;
   const outdated = !!report && !!submittedSnapshot && currentSnapshot !== submittedSnapshot;
@@ -80,7 +105,18 @@ function ReportsWorkspace({ municipalityId }: { municipalityId: string }) {
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
       <Card>
         <CardHeader>
-          <CardTitle>{t.formTitle}</CardTitle>
+          <div className="flex items-start justify-between gap-3">
+            <CardTitle>{t.formTitle}</CardTitle>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={!readyExample}
+              onClick={() => readyExample && setExample({ ...readyExample })}
+            >
+              <WandSparkles aria-hidden />
+              {t.example}
+            </Button>
+          </div>
           <CardDescription>{t.formDescription}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,6 +129,11 @@ function ReportsWorkspace({ municipalityId }: { municipalityId: string }) {
             neighborhoods={ranking.data?.meta.neighborhoods}
             scenarios={scenarios.data?.data}
             submitting={preview.isPending}
+            canUsePublicFunding={canUsePublicFunding}
+            example={(wantsExample && readyExample) || example}
+            onExampleApplied={() => {
+              if (wantsExample) setParams({ exemplo: null });
+            }}
             onSnapshotChange={setCurrentSnapshot}
             onSubmit={(values, snapshot) => {
               setSubmittedSnapshot(snapshot);
@@ -103,7 +144,11 @@ function ReportsWorkspace({ municipalityId }: { municipalityId: string }) {
         </CardContent>
       </Card>
 
-      <section aria-labelledby="preview-title" className="flex flex-col gap-4">
+      <section
+        aria-labelledby="preview-title"
+        data-tour="report-preview"
+        className="flex flex-col gap-4"
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="preview-title" className="text-lg font-semibold text-fg">
             {t.previewTitle}

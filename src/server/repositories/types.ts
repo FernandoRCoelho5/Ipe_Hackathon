@@ -9,6 +9,7 @@ import type {
 } from "@/domain/citizen/schema";
 import type { IotNode, IotReading } from "@/domain/iot/schema";
 import type { Municipality } from "@/domain/municipality/types";
+import type { NewPilotRequest, PilotRequestReceipt } from "@/domain/pilot/schema";
 import type { FieldChecklist } from "@/domain/prescription/checklist";
 import type { SavedScenario } from "@/domain/simulation/saved-scenario";
 import type { DailyWeather } from "@/domain/thermal/diurnal";
@@ -102,6 +103,11 @@ export interface ChecklistRepository {
   save(checklist: FieldChecklist): Promise<FieldChecklist>;
 }
 
+export interface PilotRequestRepository {
+  /** Guarda o pedido (contato institucional, com consentimento) e devolve o protocolo. */
+  create(input: NewPilotRequest): Promise<PilotRequestReceipt>;
+}
+
 export interface Repositories {
   municipalities: MunicipalityRepository;
   blocks: BlockRepository;
@@ -112,4 +118,5 @@ export interface Repositories {
   adoptions: AdoptionRepository;
   scenarios: ScenarioRepository;
   checklists: ChecklistRepository;
+  pilotRequests: PilotRequestRepository;
 }

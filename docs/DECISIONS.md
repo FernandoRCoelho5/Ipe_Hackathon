@@ -155,3 +155,43 @@ Formato curto: contexto → decisão → consequências. Decisões novas entram 
 **Decisão.** Acrescentar `'wasm-unsafe-eval'` a `script-src` e `data:` a `connect-src`. `'unsafe-eval'` continua só em desenvolvimento.
 
 **Consequências.** O PDF é gerado sob CSP em produção. `'wasm-unsafe-eval'` permite compilar WebAssembly, mas não `eval` de JavaScript; `data:` em `connect-src` não amplia exfiltração além do que `'self'` já permite.
+
+## ADR-020 · Perfis de acesso: matriz no domínio, sessão em `<Suspense>` e três pontos de controle
+
+**Contexto.** O RF08 pede permissão por rota e por ação, com seletor de perfil para a banca e caminho para OIDC. Ler o cookie no layout tornaria todas as telas dinâmicas (ADR-001) e anularia o HTML estático das telas (ADR-015).
+
+**Decisão.** A matriz (`src/domain/access`) define quatro perfis, sete permissões e as rotas que exigem permissão (`/relatorios` → gerar relatórios; `/acessos` → gerenciar acessos). Ela é aplicada em três pontos: o `proxy.ts` (sem sessão → `/entrar`; sem permissão → `/acesso-restrito`), o `withApi` das escritas (`401`/`403`, documentados no OpenAPI com o esquema `sessionCookie`) e a interface (navegação filtrada; botões desabilitados com o motivo, e não escondidos, para a regra ficar visível). O layout lê a sessão num Server Component dentro de `<Suspense>` e entrega ao cliente só o perfil (Zustand), conforme o guia `authentication-with-cache-components`. Trocar de perfil é uma Server Action (`signInAs`), que funciona sem JavaScript. Leituras, cálculos (what-if, ESG) e relatos cidadãos continuam públicos. O Cliente Corporativo gera o relatório ESG, mas não os de editais públicos.
+
+**Consequências.** As telas passam a ser pré-renderizadas parcialmente: o esqueleto continua estático e só o perfil chega por requisição. A interface nunca é a barreira de segurança (proxy e API são). Sem `SESSION_SECRET`, o servidor usa um segredo de demonstração e avisa no log; forjar o cookie não dá acesso além do que o seletor já oferece. No piloto, o OIDC substitui `session-token.ts`, `session.ts` e `signInAs`; matriz, proxy, API e interface ficam.
+
+## ADR-021 · Modo Apresentação com tour próprio, roteiro em dados e navegação pela URL
+
+**Contexto.** O pitch precisa de um tour de cerca de 4 minutos, acessível por teclado, que atravesse seis telas, e de um atalho `?demo=1` que deixe tudo pronto. Bibliotecas de tour (Shepherd, driver.js) somam peso e lidam mal com `<dialog>` modais e com a navegação do App Router.
+
+**Decisão.** O roteiro é uma lista de passos (`src/components/tour/steps.ts`), cada um com tela (URL) e alvo (`data-tour`). O `TourOverlay` navega uma vez por passo, acompanha o alvo a cada quadro, posiciona o cartão com uma função pura testada (`placeCard`) e desenha um destaque que não bloqueia a tela, para o apresentador continuar interagindo. Quando há um `<dialog>` modal aberto (gaveta da prescrição), o cartão é desenhado dentro dele; fora dele, ficaria inerte. As telas aceitam o estado do tour pela URL (`?bloco=`, `?aba=`, e `?exemplo=1` nos relatórios, que preenche e gera um relatório de exemplo). Com `?demo=1`, o proxy entra como Administrador Municipal e o cliente seleciona o primeiro município e o quarteirão mais crítico, e abre a introdução do tour. O estado fica no `sessionStorage`.
+
+**Consequências.** Nenhuma dependência nova, e cada passo é um link compartilhável. Para incluir um passo, basta um `data-tour` na tela e uma linha no roteiro. Quem não é administrador vê, na introdução, o aviso de que o tour troca o perfil.
+
+## ADR-022 · Landing estática com vitrine dos dados demonstrativos
+
+**Contexto.** A landing precisa vender (mostrar o produto, ter números de impacto e o comparativo), com Lighthouse ≥ 90 e boa prévia nos compartilhamentos.
+
+**Decisão.** A página é um Server Component estático (`"use cache"`), sem MapLibre. A vitrine (`buildShowcase`) recorta os dados demonstrativos em torno do quarteirão mais crítico e os desenha em SVG: quarteirões coloridos por UTCI e o mesmo trecho em pixels de 30 m pela temperatura de superfície, cada pixel com a média de área dos quarteirões e ruas que cobre. A revelação ao rolar usa CSS com `animation-timeline: view()`, sem JavaScript e desligada com `prefers-reduced-motion`. A imagem Open Graph é gerada no build (`next/og`, Poppins embutida) com o mesmo recorte. Os números de impacto são só os das fontes do projeto e levam o selo "Estimativas a validar no piloto".
+
+**Consequências.** A landing carrega só o JavaScript do formulário de piloto. O comparativo de concorrentes descreve o foco principal de cada ferramenta e traz uma nota sobre a fonte. Revisar a tabela antes de cada apresentação.
+
+## ADR-023 · Pedido de piloto como único dado pessoal
+
+**Contexto.** O CTA "Solicitar piloto" não pode ser um botão morto, mas a plataforma se apresenta como livre de dados pessoais (LGPD).
+
+**Decisão.** `POST /api/v1/pilot-requests` recebe o contato institucional com consentimento obrigatório (`consent: true`), limite de 5 pedidos por minuto por IP, e devolve só o protocolo, sem ecoar o contato. Na demo, o pedido fica em memória. A tabela `pilot_requests` registra `consent_at` e um comentário de retenção. A página de privacidade e o resumo LGPD passaram a citar essa exceção.
+
+**Consequências.** O texto de privacidade continua verdadeiro. No piloto, o pedido deve seguir para o CRM ou o e-mail comercial, com prazo de exclusão definido com o DPO.
+
+## ADR-024 · Gavetas modais fecham quando a tela fica oculta
+
+**Contexto.** O App Router guarda a tela anterior oculta (`<Activity>`) para o "voltar" ser instantâneo. Uma gaveta `<dialog>` aberta com `showModal()` continuava modal, mesmo invisível, e deixava inerte a tela seguinte. Era o caso do botão "Simular este quarteirão", na prescrição, que travava o simulador; o tour revelou o problema.
+
+**Decisão.** A limpeza do efeito do `Drawer` fecha o `<dialog>` em silêncio (sem chamar `onClose`, que mexeria na URL da tela oculta). Ao reexibir a tela, o efeito reabre a gaveta.
+
+**Consequências.** Navegar a partir de uma gaveta é seguro, e a gaveta continua aberta ao voltar. Há um teste com `<Activity>` cobrindo o caso.

@@ -3,6 +3,7 @@ import { isAlertActive, type HeatAlert } from "@/domain/alerts/schema";
 import type { Block } from "@/domain/block/schema";
 import { spamScore, type CitizenReport } from "@/domain/citizen/schema";
 import type { IotNode, IotReading } from "@/domain/iot/schema";
+import type { NewPilotRequest, PilotRequestReceipt } from "@/domain/pilot/schema";
 import type { FieldChecklist } from "@/domain/prescription/checklist";
 import { distanceMeters } from "@/domain/shared/geo";
 import type { SavedScenario } from "@/domain/simulation/saved-scenario";
@@ -64,6 +65,7 @@ interface MockState {
   newAdoptions: Adoption[];
   scenarios: SavedScenario[];
   checklists: Map<string, FieldChecklist>;
+  pilotRequests: Array<NewPilotRequest & PilotRequestReceipt>;
 }
 
 function createState(): MockState {
@@ -73,6 +75,7 @@ function createState(): MockState {
     newAdoptions: [],
     scenarios: [],
     checklists: new Map(),
+    pilotRequests: [],
   };
 }
 
@@ -368,6 +371,20 @@ export function createMockRepositories({
         };
         state.checklists.set(checklist.blockId, saved);
         return saved;
+      },
+    },
+
+    pilotRequests: {
+      async create(input) {
+        const now = clock();
+        const receipt: PilotRequestReceipt = {
+          id: crypto.randomUUID(),
+          protocol: `IPE-${now.getUTCFullYear()}-${shortId().slice(0, 6).toUpperCase()}`,
+          createdAt: now.toISOString(),
+        };
+        // Em memória: some ao reiniciar o servidor (nenhum contato fica guardado na demo).
+        state.pilotRequests.unshift({ ...input, ...receipt });
+        return receipt;
       },
     },
   };

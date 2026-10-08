@@ -14,6 +14,7 @@ import { esgInputSchema } from "@/domain/esg/esg";
 import { IOT_STATUSES, iotNodeSchema, iotReadingSchema } from "@/domain/iot/schema";
 import { IVTU_LEVELS, type IvtuResult } from "@/domain/ivtu/ivtu";
 import { municipalitySchema } from "@/domain/municipality/types";
+import { newPilotRequestSchema, pilotRequestReceiptSchema } from "@/domain/pilot/schema";
 import {
   checklistItemIdSchema,
   CHECKLIST_STATUSES,
@@ -639,3 +640,10 @@ export const reportDocumentSchema = z
   })
   .meta({ id: "ReportDocument" });
 export type ReportDocument = z.infer<typeof reportDocumentSchema>;
+
+// ─────────────────────────── Pedido de piloto ───────────────────────────
+
+export const newPilotRequestRequestSchema = newPilotRequestSchema.meta({ id: "NewPilotRequest" });
+export const pilotRequestReceiptResponseSchema = pilotRequestReceiptSchema.meta({
+  id: "PilotRequestReceipt",
+});

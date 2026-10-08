@@ -31,19 +31,32 @@ export function Drawer({
 }: DrawerProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  /** Fechamento feito pela limpeza do efeito: não é o usuário fechando a gaveta. */
+  const silentClose = useRef(false);
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
     if (!open && dialog.open) dialog.close();
+    // O App Router guarda a tela anterior oculta (<Activity>) ao navegar, o que desmonta
+    // os efeitos: sem fechar aqui, o <dialog> modal invisível deixaria a nova tela inerte.
+    return () => {
+      if (dialog.open) {
+        silentClose.current = true;
+        dialog.close();
+      }
+    };
   }, [open]);
 
   return (
     <dialog
       ref={ref}
       aria-labelledby={titleId}
-      onClose={onClose}
+      onClose={() => {
+        if (silentClose.current) silentClose.current = false;
+        else onClose();
+      }}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}

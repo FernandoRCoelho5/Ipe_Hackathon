@@ -120,7 +120,7 @@ function Workbench({
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" data-tour="simulator-controls">
         <Card>
           <CardHeader className="gap-2">
             <p className="text-xs font-medium tracking-[0.14em] text-fg-muted uppercase">
@@ -232,7 +232,7 @@ function Workbench({
       </div>
 
       <div className="flex flex-col gap-4">
-        <Card>
+        <Card data-tour="simulation-result">
           <CardHeader>
             <CardTitle>{t.resultTitle}</CardTitle>
           </CardHeader>

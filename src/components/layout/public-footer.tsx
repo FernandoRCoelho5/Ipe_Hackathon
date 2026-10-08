@@ -2,6 +2,13 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { messages } from "@/lib/i18n";
 
+const LINKS = [
+  { href: "/mapa?demo=1", label: messages.landing.ctaDemo },
+  { href: "/#piloto", label: messages.landing.ctaPilot },
+  { href: "/entrar", label: messages.landing.signIn },
+  { href: "/privacidade", label: messages.legal.privacyTitle },
+] as const;
+
 export function PublicFooter() {
   return (
     <footer className="border-t border-line bg-verde-ipe text-white">
@@ -9,14 +16,18 @@ export function PublicFooter() {
         <div className="flex max-w-md flex-col gap-4">
           <Logo variant="horizontal" tone="negative" className="h-14 self-start" />
           <p className="text-sm leading-relaxed text-white/80">{messages.legal.seal}</p>
+          <p className="text-xs leading-relaxed text-white/60">{messages.demoData.description}</p>
         </div>
         <nav aria-label="Rodapé" className="flex flex-col gap-2 text-sm">
-          <Link href="/mapa" className="text-white/90 underline-offset-4 hover:underline">
-            {messages.landing.ctaDemo}
-          </Link>
-          <Link href="/privacidade" className="text-white/90 underline-offset-4 hover:underline">
-            {messages.legal.privacyTitle}
-          </Link>
+          {LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-white/90 underline-offset-4 hover:underline"
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
       </div>
       <div aria-hidden className="h-1.5 brand-gradient" />

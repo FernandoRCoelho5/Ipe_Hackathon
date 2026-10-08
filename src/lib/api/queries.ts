@@ -5,6 +5,7 @@ import type { Zone } from "@/domain/block/schema";
 import type { NewCitizenReport, ReportCategory, ReportStatus } from "@/domain/citizen/schema";
 import type { EsgInput } from "@/domain/esg/esg";
 import type { IvtuLevel } from "@/domain/ivtu/ivtu";
+import type { NewPilotRequest, PilotRequestReceipt } from "@/domain/pilot/schema";
 import type { SaveScenarioInput } from "@/domain/simulation/saved-scenario";
 import type { SimulationScenarioInput } from "@/domain/simulation/simulate";
 import { apiClient } from "./client";
@@ -229,4 +230,6 @@ export const mutations = {
     apiClient.patch<CitizenReportItem>(`/citizen-reports/${encodeURIComponent(id)}`, { status }),
   createAdoption: (input: z.input<typeof newAdoptionSchema>) =>
     apiClient.post<AdoptionSummary>("/adoptions", input),
+  requestPilot: (input: NewPilotRequest) =>
+    apiClient.post<PilotRequestReceipt>("/pilot-requests", input),
 };

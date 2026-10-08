@@ -1,4 +1,4 @@
-import { Database, EyeOff, MapPin, ShieldCheck } from "lucide-react";
+import { Database, EyeOff, Mail, MapPin, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicHeader } from "@/components/layout/public-header";
@@ -30,6 +30,11 @@ const principles = [
     icon: ShieldCheck,
     title: "Decisão humana",
     body: "As recomendações são pré-diagnósticos para subsidiar a análise do profissional responsável. A decisão final permanece com o servidor público ou com o responsável técnico da empresa.",
+  },
+  {
+    icon: Mail,
+    title: "Pedido de piloto",
+    body: "Único formulário com dado pessoal: nome e e-mail institucional de quem pede um piloto, enviados com consentimento explícito e usados só para responder ao pedido. Na demonstração, ficam apenas na memória do servidor.",
   },
 ] as const;
 

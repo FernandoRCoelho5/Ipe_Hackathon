@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { permissionPhrase, type Permission } from "@/domain/access/access";
+import { SESSION_COOKIE } from "@/server/auth/session-token";
 import {
   adoptionListResponseSchema,
   adoptionSummarySchema,
@@ -22,6 +24,8 @@ import {
   municipalityQuerySchema,
   newAdoptionRequestSchema,
   newCitizenReportRequestSchema,
+  newPilotRequestRequestSchema,
+  pilotRequestReceiptResponseSchema,
   rankingQuerySchema,
   rankingResponseSchema,
   reportDocumentSchema,
@@ -112,10 +116,12 @@ const pathParam = (name: string, description: string) => ({
 
 const ERROR_DESCRIPTIONS: Record<number, string> = {
   400: "Parâmetros ou corpo inválidos",
+  401: "Sessão ausente ou expirada",
+  403: "O perfil da sessão não tem a permissão exigida",
   404: "Recurso não encontrado",
   413: "Corpo acima de 64 KB",
   415: "Corpo deve ser application/json",
-  429: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min)",
+  429: "Limite de requisições excedido por IP e rota (escritas: 30/min; cálculos what-if e ESG: 240/min; pedidos de piloto: 5/min)",
   500: "Erro interno",
 };
 
@@ -128,6 +134,8 @@ interface Operation {
   query?: z.ZodObject;
   pathParams?: JsonSchema[];
   body?: z.ZodType;
+  /** Ação protegida (RF08): exige o cookie de sessão de um perfil com esta permissão. */
+  permission?: Permission;
   response: { status: 200 | 201; schema: z.ZodType; description: string };
   errors: number[];
 }
@@ -216,6 +224,7 @@ const OPERATIONS: Operation[] = [
   {
     method: "put",
     path: "/blocks/{id}/checklist",
+    permission: "checklist:edit",
     tag: "Prescrição",
     summary: "Salvar checklist de validação de campo",
     pathParams: [pathParam("id", "Identificador do quarteirão")],
@@ -261,6 +270,7 @@ const OPERATIONS: Operation[] = [
   {
     method: "post",
     path: "/simulation/scenarios",
+    permission: "scenario:save",
     tag: "Simulação",
     summary: "Salvar cenário de projeto",
     body: saveScenarioRequestSchema,
@@ -307,6 +317,7 @@ const OPERATIONS: Operation[] = [
   {
     method: "patch",
     path: "/citizen-reports/{id}",
+    permission: "citizen-report:moderate",
     tag: "Ciência cidadã",
     summary: "Moderar relato",
     pathParams: [pathParam("id", "Identificador do relato")],
@@ -373,6 +384,7 @@ const OPERATIONS: Operation[] = [
   {
     method: "post",
     path: "/adoptions",
+    permission: "adoption:create",
     tag: "Adote uma Ilha Verde",
     summary: "Cadastrar parceria",
     body: newAdoptionRequestSchema,
@@ -403,6 +415,7 @@ const OPERATIONS: Operation[] = [
   {
     method: "post",
     path: "/reports/preview",
+    permission: "report:generate",
     tag: "Relatórios",
     summary: "Montar relatório para edital",
     description:
@@ -415,7 +428,24 @@ const OPERATIONS: Operation[] = [
     },
     errors: [400, 404, 413, 415, 429],
   },
+  {
+    method: "post",
+    path: "/pilot-requests",
+    tag: "Comercial",
+    summary: "Solicitar piloto",
+    description:
+      "Formulário público da landing. Único dado pessoal recebido pela plataforma: o contato institucional, com consentimento explícito e finalidade única (responder ao pedido). A resposta não ecoa o contato.",
+    body: newPilotRequestRequestSchema,
+    response: {
+      status: 201,
+      schema: pilotRequestReceiptResponseSchema,
+      description: "Pedido registrado com protocolo",
+    },
+    errors: [400, 413, 415, 429],
+  },
 ];
+
+const SESSION_SCHEME = "sessionCookie";
 
 export function buildOpenApiDocument() {
   const components = z.toJSONSchema(z.globalRegistry, {
@@ -433,17 +463,25 @@ export function buildOpenApiDocument() {
         content: { "application/json": { schema: outputSchema(op.response.schema) } },
       },
     };
-    for (const status of op.errors) {
+    const errors = op.permission ? [...op.errors, 401, 403].sort((a, b) => a - b) : op.errors;
+    for (const status of errors) {
       responses[status] = {
         description: ERROR_DESCRIPTIONS[status],
         content: { "application/json": { schema: { $ref: REF("ApiError") } } },
       };
     }
+    const description = [
+      op.description,
+      op.permission && `**Permissão:** ${permissionPhrase(op.permission)}.`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
     paths[op.path] ??= {};
     paths[op.path][op.method] = {
       tags: [op.tag],
       summary: op.summary,
-      ...(op.description ? { description: op.description } : {}),
+      ...(description ? { description } : {}),
+      ...(op.permission ? { security: [{ [SESSION_SCHEME]: [] }] } : {}),
       operationId: `${op.method}${op.path
         .replace(/[{}]/g, "")
         .replace(/\/(\w)/g, (_, c: string) => c.toUpperCase())
@@ -473,6 +511,7 @@ export function buildOpenApiDocument() {
         "Nesta versão, os dados são demonstrativos (ver docs/DATA.md).",
         "",
         "Erros seguem o formato `ApiError`. Respostas trazem o cabeçalho `X-Request-Id`.",
+        "Leituras são públicas. Escritas protegidas exigem a sessão de um perfil com a permissão indicada (RF08); no MVP, um cookie assinado de demonstração, e no piloto, OIDC.",
         "Este contrato é gerado a partir dos schemas Zod em `src/lib/api/contracts.ts` (`npm run openapi`).",
       ].join("\n"),
       license: { name: "Proprietário" },
@@ -492,9 +531,19 @@ export function buildOpenApiDocument() {
       { name: "Sensores IoT" },
       { name: "Adote uma Ilha Verde" },
       { name: "Relatórios" },
+      { name: "Comercial" },
     ],
     paths,
     components: {
+      securitySchemes: {
+        [SESSION_SCHEME]: {
+          type: "apiKey",
+          in: "cookie",
+          name: SESSION_COOKIE,
+          description:
+            "Sessão do perfil de acesso (Administrador Municipal, Técnico/Analista, Cliente Corporativo ou Leitor Público).",
+        },
+      },
       schemas: Object.fromEntries(
         Object.entries(components.schemas).map(([k, v]) => [k, strip(v)]),
       ),

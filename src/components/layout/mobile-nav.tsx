@@ -1,10 +1,11 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { Menu, Presentation, X } from "lucide-react";
 import { useRef } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { messages } from "@/lib/i18n";
+import { useTourStore } from "@/stores/tour-store";
 import { LegalSeal } from "./legal-seal";
 import { NavLinks } from "./nav-links";
 
@@ -15,6 +16,7 @@ import { NavLinks } from "./nav-links";
 export function MobileNav() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const close = () => dialogRef.current?.close();
+  const startTour = useTourStore((state) => state.start);
 
   return (
     <>
@@ -54,7 +56,17 @@ export function MobileNav() {
           <nav aria-label={messages.nav.primaryLabel} className="flex-1 overflow-y-auto px-3 py-5">
             <NavLinks onNavigate={close} />
           </nav>
-          <div className="border-t border-line p-3">
+          <div className="flex flex-col gap-3 border-t border-line p-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                close();
+                startTour();
+              }}
+            >
+              <Presentation aria-hidden className="text-highlight-ink" />
+              {messages.tour.start}
+            </Button>
             <LegalSeal />
           </div>
         </div>

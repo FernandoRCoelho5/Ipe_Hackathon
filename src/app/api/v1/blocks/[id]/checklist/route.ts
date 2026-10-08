@@ -11,8 +11,11 @@ export const GET = withApi<Context>(async (_request, { params }) => {
 });
 
 /** PUT /api/v1/blocks/{id}/checklist — salva o checklist (persistido por quarteirão). */
-export const PUT = withApi<Context>(async (request, { params }) => {
-  const { id } = await params;
-  const body = await parseJson(request, checklistUpdateSchema);
-  return json(await updateChecklist(id, body));
-});
+export const PUT = withApi<Context>(
+  async (request, { params }) => {
+    const { id } = await params;
+    const body = await parseJson(request, checklistUpdateSchema);
+    return json(await updateChecklist(id, body));
+  },
+  { permission: "checklist:edit" },
+);

@@ -16,14 +16,18 @@ import {
   iotReadingsResponseSchema,
   mapLayersResponseSchema,
   municipalityListResponseSchema,
+  pilotRequestReceiptResponseSchema,
   rankingResponseSchema,
   reportDocumentSchema,
   savedScenarioListResponseSchema,
   utciByHourResponseSchema,
   whatIfResponseSchema,
 } from "@/lib/api/contracts";
+import type { RoleId } from "@/domain/access/access";
 import { citizenReportSchema } from "@/domain/citizen/schema";
 import { savedScenarioSchema } from "@/domain/simulation/saved-scenario";
+import { getSessionSecret } from "@/server/auth/session";
+import { SESSION_COOKIE, signSession } from "@/server/auth/session-token";
 import { withApi } from "@/server/http/handler";
 import { createRateLimiter } from "@/server/http/rate-limit";
 import * as adoptionById from "./adoptions/[id]/route";
@@ -38,6 +42,7 @@ import * as readings from "./iot-nodes/[id]/readings/route";
 import * as calibration from "./iot-nodes/calibration/route";
 import * as iotNodes from "./iot-nodes/route";
 import * as municipalities from "./municipalities/route";
+import * as pilotRequests from "./pilot-requests/route";
 import * as ranking from "./prescriptions/ivtu-ranking/route";
 import * as preview from "./reports/preview/route";
 import * as programs from "./reports/programs/route";
@@ -53,21 +58,29 @@ type Handler = (
   context: { params: Promise<Record<string, string>> },
 ) => Promise<Response>;
 
+async function sessionCookie(role: RoleId): Promise<string> {
+  const { token } = await signSession(role, getSessionSecret());
+  return `${SESSION_COOKIE}=${token}`;
+}
+
+/**
+ * Chama o handler como o navegador faria. Por padrão, com a sessão do Administrador
+ * Municipal; `as: null` simula uma requisição sem login.
+ */
 async function call(
   handler: Handler,
   path: string,
-  init: RequestInit & { json?: unknown } = {},
+  init: RequestInit & { json?: unknown; as?: RoleId | null } = {},
   params: Record<string, string> = {},
 ) {
-  const { json, ...rest } = init;
+  const { json, as = "admin-municipal", ...rest } = init;
+  const headers = new Headers(rest.headers);
+  if (as) headers.set("cookie", await sessionCookie(as));
+  if (json !== undefined) headers.set("content-type", "application/json");
   const request = new Request(`${BASE}${path}`, {
     ...rest,
-    ...(json !== undefined
-      ? {
-          body: JSON.stringify(json),
-          headers: { "content-type": "application/json", ...rest.headers },
-        }
-      : {}),
+    headers,
+    ...(json !== undefined ? { body: JSON.stringify(json) } : {}),
   });
   const response = await handler(request, { params: Promise.resolve(params) });
   return { response, body: (await response.json()) as unknown };
@@ -484,6 +497,165 @@ describe("API v1 — Adote uma Ilha Verde e relatórios", () => {
       },
     });
     expect(bad.response.status).toBe(400);
+  });
+});
+
+describe("API v1 — perfis de acesso (RF08)", () => {
+  const scenarioBody = {
+    name: "Cenário do leitor",
+    municipalityId: "volta-redonda",
+    scenario: { blockId: "vr-0001", trees: [{ speciesId: "ipe-amarelo", count: 4 }] },
+  };
+  const reportBody = (programId: string) => ({
+    programId,
+    municipalityId: "volta-redonda",
+    projectName: "Pátio sombreado da fábrica",
+    department: "Diretoria de Sustentabilidade",
+    estimatedBudget: 450_000,
+    neighborhoods: ["Retiro"],
+  });
+
+  it("escrita protegida sem sessão devolve 401; sessão adulterada também", async () => {
+    const anonymous = await call(scenarios.POST as Handler, "/simulation/scenarios", {
+      method: "POST",
+      json: scenarioBody,
+      as: null,
+    });
+    expect(anonymous.response.status).toBe(401);
+    expectError(anonymous.body, "unauthorized");
+
+    const forged = await call(scenarios.POST as Handler, "/simulation/scenarios", {
+      method: "POST",
+      json: scenarioBody,
+      as: null,
+      headers: { cookie: `${SESSION_COOKIE}=eyJ2IjoxfQ.assinatura-falsa` },
+    });
+    expect(forged.response.status).toBe(401);
+  });
+
+  it("Leitor Público não salva cenários nem gera relatórios (403)", async () => {
+    const save = await call(scenarios.POST as Handler, "/simulation/scenarios", {
+      method: "POST",
+      json: scenarioBody,
+      as: "leitor-publico",
+    });
+    expect(save.response.status).toBe(403);
+    expect(expectError(save.body, "forbidden").error.message).toContain("Leitor Público");
+
+    const report = await call(preview.POST as Handler, "/reports/preview", {
+      method: "POST",
+      json: reportBody("esg-corporativo"),
+      as: "leitor-publico",
+    });
+    expect(report.response.status).toBe(403);
+  });
+
+  it("Cliente Corporativo gera o relatório ESG, mas não o de edital público", async () => {
+    const esgReport = await call(preview.POST as Handler, "/reports/preview", {
+      method: "POST",
+      json: reportBody("esg-corporativo"),
+      as: "cliente-corporativo",
+    });
+    expect(esgReport.response.status).toBe(200);
+    const publicReport = await call(preview.POST as Handler, "/reports/preview", {
+      method: "POST",
+      json: reportBody("fundo-clima"),
+      as: "cliente-corporativo",
+    });
+    expect(publicReport.response.status).toBe(403);
+  });
+
+  it("moderação e checklist exigem perfil municipal", async () => {
+    const list = expectShape(
+      citizenReportListResponseSchema,
+      (await call(reports.GET as Handler, "/citizen-reports?municipality=resende")).body,
+    );
+    const id = list.data[0].id;
+    for (const role of ["cliente-corporativo", "leitor-publico"] as const) {
+      const moderate = await call(
+        reportById.PATCH as Handler,
+        `/citizen-reports/${id}`,
+        { method: "PATCH", json: { status: "validado" }, as: role },
+        { id },
+      );
+      expect(moderate.response.status).toBe(403);
+    }
+    const asTechnician = await call(
+      checklist.PUT as Handler,
+      "/blocks/rs-0001/checklist",
+      { method: "PUT", json: { items: {} }, as: "tecnico" },
+      { id: "rs-0001" },
+    );
+    expect(asTechnician.response.status).toBe(200);
+    const asClient = await call(
+      checklist.PUT as Handler,
+      "/blocks/rs-0001/checklist",
+      { method: "PUT", json: { items: {} }, as: "cliente-corporativo" },
+      { id: "rs-0001" },
+    );
+    expect(asClient.response.status).toBe(403);
+  });
+
+  it("leituras, cálculos e relatos cidadãos continuam públicos", async () => {
+    const read = await call(municipalities.GET as Handler, "/municipalities", { as: null });
+    expect(read.response.status).toBe(200);
+    const compute = await call(whatIf.POST as Handler, "/simulation/what-if", {
+      method: "POST",
+      json: scenarioBody.scenario,
+      as: null,
+    });
+    expect(compute.response.status).toBe(200);
+  });
+});
+
+describe("API v1 — pedido de piloto", () => {
+  const request = {
+    organization: "Prefeitura de Barra Mansa",
+    organizationType: "prefeitura",
+    municipality: "Barra Mansa",
+    contactName: "Carla Mendes",
+    email: "carla.mendes@barramansa.rj.gov.br",
+    interests: ["diagnostico", "relatorios"],
+    consent: true,
+  };
+
+  it("registra sem login e devolve só o protocolo, sem ecoar o contato", async () => {
+    const { response, body } = await call(pilotRequests.POST as Handler, "/pilot-requests", {
+      method: "POST",
+      json: request,
+      as: null,
+      headers: { "x-forwarded-for": "10.9.0.1" },
+    });
+    expect(response.status).toBe(201);
+    const receipt = expectShape(pilotRequestReceiptResponseSchema, body);
+    expect(receipt.protocol).toMatch(/^IPE-\d{4}-[A-Z0-9]{6}$/);
+    expect(JSON.stringify(body)).not.toContain("carla");
+  });
+
+  it("exige consentimento, e-mail válido e ao menos um módulo", async () => {
+    const { response, body } = await call(pilotRequests.POST as Handler, "/pilot-requests", {
+      method: "POST",
+      json: { ...request, consent: false, email: "carla", interests: [] },
+      as: null,
+      headers: { "x-forwarded-for": "10.9.0.2" },
+    });
+    expect(response.status).toBe(400);
+    const paths = expectError(body, "bad_request").error.details?.map((d) => d.path);
+    expect(paths).toEqual(expect.arrayContaining(["consent", "email", "interests"]));
+  });
+
+  it("limita a 5 pedidos por minuto por IP", async () => {
+    const statuses: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const { response } = await call(pilotRequests.POST as Handler, "/pilot-requests", {
+        method: "POST",
+        json: request,
+        as: null,
+        headers: { "x-forwarded-for": "10.9.0.3" },
+      });
+      statuses.push(response.status);
+    }
+    expect(statuses).toEqual([201, 201, 201, 201, 201, 429]);
   });
 });
 

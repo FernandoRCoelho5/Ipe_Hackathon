@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { Suspense, useEffect, type ReactNode } from "react";
+import { PresentationMode } from "@/components/tour/presentation-mode";
+import { TourOverlay } from "@/components/tour/tour-overlay";
 import type { Municipality } from "@/domain/municipality/types";
 import { useAppStore } from "@/stores/app-store";
 import { AppHeader } from "./app-header";
@@ -37,6 +39,11 @@ export function AppShell({ municipalities, children }: AppShellProps) {
           </main>
         </div>
       </div>
+      {/* Modo Apresentação: atalho ?demo=1 (lê a URL, por isso em Suspense) e tour guiado. */}
+      <Suspense fallback={null}>
+        <PresentationMode />
+      </Suspense>
+      <TourOverlay />
     </MunicipalitiesProvider>
   );
 }

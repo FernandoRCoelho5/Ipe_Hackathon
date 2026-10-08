@@ -87,7 +87,11 @@ export function PrescriptionDrawer({ blockId, rank, onClose }: PrescriptionDrawe
             </div>
           </section>
 
-          <section aria-labelledby="recs-title" className="flex flex-col gap-3">
+          <section
+            aria-labelledby="recs-title"
+            data-tour="prescription-detail"
+            className="flex flex-col gap-3"
+          >
             <h3 id="recs-title" className="text-sm font-semibold text-fg">
               {t.recommendationsTitle}
             </h3>

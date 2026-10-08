@@ -191,7 +191,7 @@ function Calibration({ municipalityId }: { municipalityId: string }) {
   const t = messages.citizen.sensors;
   const { data, error, refetch } = useQuery(engagementQueries.calibration(municipalityId));
   return (
-    <Card>
+    <Card data-tour="calibration">
       <CardHeader>
         <CardTitle>{t.calibrationTitle}</CardTitle>
         <CardDescription>{t.calibrationDescription}</CardDescription>

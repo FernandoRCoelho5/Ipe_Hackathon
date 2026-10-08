@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { ProfileMenu } from "@/components/auth/profile-menu";
 import { Logo } from "@/components/brand/Logo";
+import { TourButton } from "@/components/tour/tour-button";
 import type { Municipality } from "@/domain/municipality/types";
 import { messages } from "@/lib/i18n";
 import { DemoDataBadge } from "./demo-data-badge";
@@ -45,8 +47,12 @@ export function AppHeader({ municipalities }: AppHeaderProps) {
         <MunicipalitySelect municipalities={municipalities} />
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          <span className="hidden sm:block">
+            <TourButton />
+          </span>
           <DemoDataBadge />
           <ThemeToggle />
+          <ProfileMenu />
         </div>
       </div>
     </header>

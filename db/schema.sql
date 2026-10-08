@@ -412,3 +412,23 @@ CREATE TABLE maintenance_tasks (
   reason       text NOT NULL
 );
 CREATE INDEX maintenance_tasks_schedule ON maintenance_tasks (adoption_id, due_date);
+
+-- ───────────────────────────── Comercial (pedidos de piloto) ─────────────────────────────
+
+-- Único dado pessoal da plataforma: contato institucional de quem pede um piloto,
+-- com consentimento registrado e finalidade única (responder ao pedido).
+CREATE TABLE pilot_requests (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  protocol           text NOT NULL UNIQUE CHECK (protocol ~ '^IPE-\d{4}-[A-Z0-9]{6}$'),
+  organization       text NOT NULL CHECK (length(organization) BETWEEN 2 AND 140),
+  organization_type  text NOT NULL CHECK (organization_type IN ('prefeitura', 'governo-estadual', 'empresa', 'outro')),
+  municipality       text NOT NULL CHECK (length(municipality) BETWEEN 2 AND 80),
+  contact_name       text NOT NULL CHECK (length(contact_name) BETWEEN 2 AND 100),
+  email              text NOT NULL CHECK (email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  interests          text[] NOT NULL CHECK (cardinality(interests) >= 1),
+  message            text CHECK (length(message) <= 1000),
+  consent_at         timestamptz NOT NULL,
+  created_at         timestamptz NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE pilot_requests IS
+  'LGPD: contato institucional com consentimento, usado só para responder ao pedido. Excluir após o encerramento da negociação.';

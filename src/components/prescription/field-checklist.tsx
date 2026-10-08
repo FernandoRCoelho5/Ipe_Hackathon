@@ -3,6 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Save } from "lucide-react";
 import { useState } from "react";
+import { PermissionNote } from "@/components/auth/permission-note";
+import { usePermission } from "@/components/auth/use-session";
 import { QueryError } from "@/components/data/query-error";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
@@ -33,6 +35,7 @@ function ChecklistForm({ blockId, data }: { blockId: string; data: ChecklistResp
   );
   const [notes, setNotes] = useState(data.checklist.notes ?? "");
   const [saved, setSaved] = useState(false);
+  const { allowed } = usePermission("checklist:edit");
 
   const save = useMutation({
     mutationFn: () => mutations.updateChecklist(blockId, { items, notes }),
@@ -50,6 +53,7 @@ function ChecklistForm({ blockId, data }: { blockId: string; data: ChecklistResp
 
   return (
     <form
+      data-tour="field-checklist"
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
@@ -85,6 +89,7 @@ function ChecklistForm({ blockId, data }: { blockId: string; data: ChecklistResp
               <select
                 id={id}
                 value={status}
+                disabled={!allowed}
                 onChange={(event) => {
                   setSaved(false);
                   setItems((current) => ({
@@ -113,6 +118,7 @@ function ChecklistForm({ blockId, data }: { blockId: string; data: ChecklistResp
           value={notes}
           maxLength={2000}
           rows={3}
+          disabled={!allowed}
           onChange={(event) => {
             setSaved(false);
             setNotes(event.target.value);
@@ -121,8 +127,9 @@ function ChecklistForm({ blockId, data }: { blockId: string; data: ChecklistResp
         />
       </div>
       {save.error && <QueryError error={save.error} />}
+      <PermissionNote permission="checklist:edit" />
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" size="sm" disabled={save.isPending}>
+        <Button type="submit" size="sm" disabled={!allowed || save.isPending}>
           <Save aria-hidden />
           {save.isPending ? t.checklistSaving : t.checklistSave}
         </Button>

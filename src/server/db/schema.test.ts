@@ -106,6 +106,19 @@ describe("banco PostGIS (schema + seed)", () => {
     ).rejects.toThrow(/check/i);
   });
 
+  it("pedido de piloto exige consentimento, e-mail válido e protocolo no formato", async () => {
+    const insert = (protocol: string, email: string, consent: string) =>
+      db.query(
+        `INSERT INTO ipe.pilot_requests (protocol, organization, organization_type, municipality, contact_name, email, interests, consent_at)
+         VALUES ($1, 'Prefeitura de Resende', 'prefeitura', 'Resende', 'Ana Souza', $2, ARRAY['diagnostico'], ${consent})`,
+        [protocol, email],
+      );
+    await insert("IPE-2026-A1B2C3", "ana@resende.rj.gov.br", "now()");
+    await expect(insert("IPE-2026-ZZZZZZ", "sem-arroba", "now()")).rejects.toThrow(/email/);
+    await expect(insert("IPE-2026-YYYYYY", "a@b.co", "NULL")).rejects.toThrow(/consent_at/);
+    await expect(insert("PILOTO-1", "a@b.co", "now()")).rejects.toThrow(/protocol/);
+  });
+
   it("última leitura por nó IoT via view", async () => {
     expect(await count("v_iot_latest")).toBe(10);
   });

@@ -3,6 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FolderOpen, Save } from "lucide-react";
 import { useState } from "react";
+import { PermissionNote } from "@/components/auth/permission-note";
+import { usePermission } from "@/components/auth/use-session";
 import { QueryError } from "@/components/data/query-error";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +30,7 @@ export function SavedScenarios({ municipalityId, scenario, canSave, onLoad }: Sa
   const [name, setName] = useState("");
   const [savedName, setSavedName] = useState<string | null>(null);
   const list = useQuery(queries.scenarios(municipalityId));
+  const { allowed } = usePermission("scenario:save");
 
   const save = useMutation({
     mutationFn: () => mutations.saveScenario({ name, municipalityId, scenario }),
@@ -44,7 +47,7 @@ export function SavedScenarios({ municipalityId, scenario, canSave, onLoad }: Sa
       : undefined;
 
   return (
-    <Card>
+    <Card data-tour="save-scenario">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
         <CardDescription>{t.description}</CardDescription>
@@ -70,16 +73,18 @@ export function SavedScenarios({ municipalityId, scenario, canSave, onLoad }: Sa
               minLength={3}
               maxLength={80}
               required
+              disabled={!allowed}
               aria-invalid={fieldError ? true : undefined}
               aria-describedby={fieldError ? "scenario-name-error" : undefined}
               className="h-10 rounded-control border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-subtle hover:border-line-strong"
             />
           </div>
-          <Button type="submit" disabled={!canSave || save.isPending}>
+          <Button type="submit" disabled={!allowed || !canSave || save.isPending}>
             <Save aria-hidden />
             {save.isPending ? t.saving : t.submit}
           </Button>
         </form>
+        <PermissionNote permission="scenario:save" className="-mt-3" />
         {fieldError && (
           <p id="scenario-name-error" className="-mt-3 text-xs text-danger">
             {fieldError}
