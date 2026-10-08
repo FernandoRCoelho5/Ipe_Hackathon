@@ -49,6 +49,8 @@ const ALERTS = deepFreeze(alertsJson as HeatAlert[]);
 export const DEMO_META = deepFreeze(metaJson);
 
 const DEFAULT_PAGE_SIZE = 20;
+/** Teto de pedidos de piloto em memória: o formulário é público e não pode esgotar a RAM. */
+export const MAX_PILOT_REQUESTS = 200;
 const MAX_PAGE_SIZE = 100;
 
 export function paginate<T>(items: readonly T[], request: PageRequest = {}): Page<T> {
@@ -384,6 +386,7 @@ export function createMockRepositories({
         };
         // Em memória: some ao reiniciar o servidor (nenhum contato fica guardado na demo).
         state.pilotRequests.unshift({ ...input, ...receipt });
+        state.pilotRequests.length = Math.min(state.pilotRequests.length, MAX_PILOT_REQUESTS);
         return receipt;
       },
     },
