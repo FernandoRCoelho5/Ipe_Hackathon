@@ -77,14 +77,19 @@ export function createRateLimitPolicy({
   };
 }
 
-/** Confere os dois baldes; o mais restritivo decide. */
+/**
+ * Confere o balde do cliente e, só se ele aceitar, o teto da rota: requisições já
+ * recusadas por IP não consomem o teto, então um cliente sozinho não o esgota.
+ * O teto é uma proteção de capacidade; atrás de um proxy reverso que reescreve
+ * `X-Forwarded-For`, o limite por IP é confiável (ver ADR-025).
+ */
 export function checkRateLimit(
   policy: RateLimitPolicy,
   client: string,
   route: string,
   now?: number,
 ): RateLimitResult {
-  const routeResult = policy.perRoute.check(route, now);
   const clientResult = policy.perClient.check(`${client}:${route}`, now);
-  return routeResult.allowed ? clientResult : routeResult;
+  if (!clientResult.allowed) return clientResult;
+  return policy.perRoute.check(route, now);
 }

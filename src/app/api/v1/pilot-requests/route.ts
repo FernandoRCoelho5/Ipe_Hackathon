@@ -3,8 +3,8 @@ import { json, parseJson, withApi } from "@/server/http/handler";
 import { createRateLimitPolicy } from "@/server/http/rate-limit";
 import { getRepositories } from "@/server/repositories";
 
-/** Formulário público: 5 pedidos por minuto por IP e no máximo 30 por minuto no total. */
-const pilotRequestPolicy = createRateLimitPolicy({ perClient: 5, perRoute: 30 });
+/** Formulário público: 5 pedidos por minuto por IP e no máximo 60 por minuto no total. */
+const pilotRequestPolicy = createRateLimitPolicy({ perClient: 5, perRoute: 60 });
 
 /**
  * POST /api/v1/pilot-requests — pedido de piloto feito na landing (público, sem login).

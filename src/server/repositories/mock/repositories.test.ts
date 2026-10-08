@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { createTimeShift, localDayIndex } from "./clock";
-import { createMockRepositories, DEMO_META, paginate } from "./index";
+import { createMockRepositories, DEMO_META, MAX_IN_MEMORY_WRITES, paginate } from "./index";
 
 const ANCHOR = Date.parse(DEMO_META.anchor);
 const NOW = new Date(ANCHOR + 260 * 86_400_000 + 25 * 60_000); // ~8,5 meses depois, hh:25
@@ -202,6 +202,40 @@ describe("repositórios mock", () => {
     });
     expect(checklist.updatedAt).toBe(NOW.toISOString());
     expect((await r.checklists.get("vr-0001"))?.items["fiacao-aerea"]).toBe("conforme");
+  });
+
+  it("escritas em memória têm teto (envios em massa não esgotam a memória)", async () => {
+    const r = repos();
+    const base = (await r.scenarios.list()).length;
+    const scenario = {
+      name: "Cenário em massa",
+      municipalityId: "volta-redonda",
+      scenario: {
+        blockId: "vr-0001",
+        trees: [],
+        permeablePavementShare: 0.1,
+        coolRoofShare: 0,
+        horizonYears: 10,
+      },
+      summary: {
+        blockCode: "VR-0001",
+        blockLabel: "Rua 33",
+        peakUtciDelta: -0.5,
+        peakUtciDeltaRange: [-0.3, -0.7] as [number, number],
+        runoffChange: -0.05,
+        evapotranspirationChange: 0,
+        plantedTrees: 0,
+        permeableAreaM2: 100,
+        coolRoofAreaM2: 0,
+      },
+    };
+    for (let i = 0; i < MAX_IN_MEMORY_WRITES + 20; i++) {
+      await r.scenarios.save({ ...scenario, name: `Cenário ${i}` });
+    }
+    const list = await r.scenarios.list();
+    expect(base).toBe(0);
+    expect(list).toHaveLength(MAX_IN_MEMORY_WRITES);
+    expect(list[0].name).toBe(`Cenário ${MAX_IN_MEMORY_WRITES + 19}`);
   });
 
   it("paginação limita o tamanho da página", () => {

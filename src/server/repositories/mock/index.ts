@@ -49,8 +49,17 @@ const ALERTS = deepFreeze(alertsJson as HeatAlert[]);
 export const DEMO_META = deepFreeze(metaJson);
 
 const DEFAULT_PAGE_SIZE = 20;
-/** Teto de pedidos de piloto em memória: o formulário é público e não pode esgotar a RAM. */
-export const MAX_PILOT_REQUESTS = 200;
+/**
+ * Teto de cada coleção escrita em memória. Relatos e pedidos de piloto são públicos:
+ * sem limite, uma rajada de envios esgotaria a memória do servidor da demo.
+ */
+export const MAX_IN_MEMORY_WRITES = 500;
+
+/** Insere no início e descarta os mais antigos além do teto. */
+function pushCapped<T>(list: T[], item: T): void {
+  list.unshift(item);
+  if (list.length > MAX_IN_MEMORY_WRITES) list.length = MAX_IN_MEMORY_WRITES;
+}
 const MAX_PAGE_SIZE = 100;
 
 export function paginate<T>(items: readonly T[], request: PageRequest = {}): Page<T> {
@@ -266,7 +275,7 @@ export function createMockRepositories({
           status: "pendente",
           hasPhoto: false,
         };
-        state.newReports.unshift(report);
+        pushCapped(state.newReports, report);
         return report;
       },
       async countByStatus(filter = {}) {
@@ -336,7 +345,7 @@ export function createMockRepositories({
           ],
           maintenance: initialMaintenance(id, now),
         };
-        state.newAdoptions.unshift(adoption);
+        pushCapped(state.newAdoptions, adoption);
         return adoption;
       },
     },
@@ -356,7 +365,7 @@ export function createMockRepositories({
           id: `cen-${shortId()}`,
           createdAt: clock().toISOString(),
         };
-        state.scenarios.unshift(saved);
+        pushCapped(state.scenarios, saved);
         return saved;
       },
     },
@@ -385,8 +394,7 @@ export function createMockRepositories({
           createdAt: now.toISOString(),
         };
         // Em memória: some ao reiniciar o servidor (nenhum contato fica guardado na demo).
-        state.pilotRequests.unshift({ ...input, ...receipt });
-        state.pilotRequests.length = Math.min(state.pilotRequests.length, MAX_PILOT_REQUESTS);
+        pushCapped(state.pilotRequests, { ...input, ...receipt });
         return receipt;
       },
     },

@@ -195,3 +195,11 @@ Formato curto: contexto → decisão → consequências. Decisões novas entram 
 **Decisão.** A limpeza do efeito do `Drawer` fecha o `<dialog>` em silêncio (sem chamar `onClose`, que mexeria na URL da tela oculta). Ao reexibir a tela, o efeito reabre a gaveta.
 
 **Consequências.** Navegar a partir de uma gaveta é seguro, e a gaveta continua aberta ao voltar. Há um teste com `<Activity>` cobrindo o caso.
+
+## ADR-025 · Teto por rota só para o que o limite por IP aceitou, e escritas em memória limitadas
+
+**Contexto.** O IP vem de `X-Forwarded-For`, que o cliente forja quando não há proxy confiável; por isso cada rota tem também um teto global (ADR-017, ADR-023). Mas o teto era consumido antes do limite por IP, então um único cliente insistindo, mesmo já recusado, esgotava o teto e bloqueava todos os outros. Além disso, relatos, adoções e cenários da demo cresciam sem limite na memória; só os pedidos de piloto tinham teto (200).
+
+**Decisão.** `checkRateLimit` confere primeiro o balde do cliente e só consome o teto da rota quando ele aceita. O teto dos pedidos de piloto passa de 30 para 60 por minuto (5 por IP). Todas as coleções escritas do repositório mock usam `pushCapped`, com teto de 500 itens, descartando os mais antigos.
+
+**Consequências.** Um cliente sozinho não esgota o teto da rota; quem forja IPs ainda é contido pelo teto. Em produção, atrás de um proxy reverso que reescreve `X-Forwarded-For`, o limite por IP é confiável e o teto vira só proteção de capacidade. A demo não esgota a memória com envios em massa; os itens mais antigos somem, como já sumiam ao reiniciar.
