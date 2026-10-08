@@ -50,7 +50,7 @@ export function Tabs<T extends string>({
     <div
       role="tablist"
       aria-label={label}
-      className={cn("flex gap-1 overflow-x-auto border-b border-line", className)}
+      className={cn("relative flex gap-1 overflow-x-auto border-b border-line", className)}
     >
       {tabs.map((tab, index) => {
         const active = tab.id === value;

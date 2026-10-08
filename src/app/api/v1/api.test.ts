@@ -29,7 +29,7 @@ import { savedScenarioSchema } from "@/domain/simulation/saved-scenario";
 import { getSessionSecret } from "@/server/auth/session";
 import { SESSION_COOKIE, signSession } from "@/server/auth/session-token";
 import { withApi } from "@/server/http/handler";
-import { createRateLimiter } from "@/server/http/rate-limit";
+import { createRateLimiter, createRateLimitPolicy } from "@/server/http/rate-limit";
 import * as adoptionById from "./adoptions/[id]/route";
 import * as adoptions from "./adoptions/route";
 import * as alerts from "./alerts/route";
@@ -662,7 +662,7 @@ describe("API v1 — pedido de piloto", () => {
 describe("infraestrutura HTTP", () => {
   it("limita escritas por IP com 429 e Retry-After", async () => {
     const handler = withApi(async () => Response.json({ ok: true }), {
-      rateLimiter: createRateLimiter({ limit: 2, windowMs: 60_000 }),
+      rateLimit: createRateLimitPolicy({ perClient: 2, perRoute: 100 }),
     }) as Handler;
     const post = () =>
       call(handler, "/x", { method: "POST", headers: { "x-forwarded-for": "10.0.0.1" } });
@@ -672,6 +672,21 @@ describe("infraestrutura HTTP", () => {
     expect(limited.response.status).toBe(429);
     expect(Number(limited.response.headers.get("retry-after"))).toBeGreaterThan(0);
     expectError(limited.body, "rate_limited");
+  });
+
+  it("forjar X-Forwarded-For não ultrapassa o teto global da rota", async () => {
+    const handler = withApi(async () => Response.json({ ok: true }), {
+      rateLimit: createRateLimitPolicy({ perClient: 2, perRoute: 5 }),
+    }) as Handler;
+    const statuses: number[] = [];
+    for (let i = 0; i < 8; i++) {
+      const { response } = await call(handler, "/y", {
+        method: "POST",
+        headers: { "x-forwarded-for": `10.1.0.${i}` },
+      });
+      statuses.push(response.status);
+    }
+    expect(statuses).toEqual([200, 200, 200, 200, 200, 429, 429, 429]);
   });
 
   it("erro inesperado vira 500 sem vazar detalhes internos", async () => {

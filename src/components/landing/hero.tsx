@@ -27,7 +27,7 @@ export function Hero({ showcase }: { showcase: Showcase | null }) {
           <span aria-hidden className="h-1.5 w-24 rounded-full bg-amarelo-ipe" />
           <p className="max-w-2xl text-lg leading-relaxed text-fg-muted">{t.hero.lead}</p>
           <div className="flex flex-wrap items-center gap-3">
-            <ButtonLink href="/mapa?demo=1" size="lg">
+            <ButtonLink href="/mapa?demo=1" prefetch={false} size="lg">
               {t.ctaDemo}
               <ArrowRight aria-hidden />
             </ButtonLink>

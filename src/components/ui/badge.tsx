@@ -9,7 +9,7 @@ const tones: Record<BadgeTone, string> = {
   highlight: "border-transparent bg-highlight text-highlight-fg",
   warning: "border-transparent bg-warning-soft text-warning-fg",
   danger: "border-transparent bg-danger-soft text-danger",
-  info: "border-transparent bg-azul-cidade/12 text-azul-rio dark:bg-azul-cidade/20 dark:text-azul-cidade",
+  info: "border-transparent bg-azul-cidade/12 text-info-fg dark:bg-azul-cidade/20",
 };
 
 type BadgeProps = ComponentProps<"span"> & { tone?: BadgeTone };

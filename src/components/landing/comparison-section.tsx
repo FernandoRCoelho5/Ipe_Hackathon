@@ -1,4 +1,5 @@
 import { Check, CircleDashed, Minus } from "lucide-react";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 import { cn } from "@/lib/cn";
 import { messages } from "@/lib/i18n";
 import { LandingSection } from "./section";
@@ -30,7 +31,10 @@ function Value({ kind, note }: { kind: string; note: string }) {
 export function ComparisonSection() {
   return (
     <LandingSection id="diferenciais" eyebrow={t.eyebrow} title={t.title}>
-      <div className="reveal overflow-x-auto rounded-card border border-line bg-surface shadow-card">
+      <ScrollRegion
+        label={t.caption}
+        className="reveal rounded-card border border-line bg-surface shadow-card"
+      >
         <table className="w-full min-w-[56rem] border-collapse text-left">
           <caption className="sr-only">{t.caption}</caption>
           <thead>
@@ -80,7 +84,7 @@ export function ComparisonSection() {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       <p className="-mt-4 text-xs text-fg-subtle">{t.footnote}</p>
     </LandingSection>
   );

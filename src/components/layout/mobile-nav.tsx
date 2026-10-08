@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { messages } from "@/lib/i18n";
 import { useTourStore } from "@/stores/tour-store";
 import { LegalSeal } from "./legal-seal";
+import { ThemeToggle } from "./theme-toggle";
 import { NavLinks } from "./nav-links";
 
 /**
@@ -57,6 +58,11 @@ export function MobileNav() {
             <NavLinks onNavigate={close} />
           </nav>
           <div className="flex flex-col gap-3 border-t border-line p-3">
+            {/* No celular, a troca de tema sai do cabeçalho para dar espaço ao município. */}
+            <div className="flex items-center justify-between rounded-control px-3 sm:hidden">
+              <span className="text-sm text-fg-muted">{messages.theme.label}</span>
+              <ThemeToggle />
+            </div>
             <Button
               variant="outline"
               onClick={() => {

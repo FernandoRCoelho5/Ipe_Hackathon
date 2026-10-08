@@ -3,6 +3,7 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from "lucide-react";
 import { ExecutionLevelBadge, IvtuBadge, UtciChip } from "@/components/data/badges";
 import { Badge } from "@/components/ui/badge";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 import { ZONE_LABELS } from "@/domain/block/schema";
 import type { RankingRow } from "@/lib/api/contracts";
 import { cn } from "@/lib/cn";
@@ -61,9 +62,10 @@ export function RankingTable({
   };
 
   return (
-    <div
+    <ScrollRegion
+      label={caption}
       className={cn(
-        "overflow-x-auto rounded-card border border-line bg-surface shadow-card transition-opacity",
+        "rounded-card border border-line bg-surface shadow-card transition-opacity",
         stale && "opacity-60",
       )}
     >
@@ -142,6 +144,6 @@ export function RankingTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }

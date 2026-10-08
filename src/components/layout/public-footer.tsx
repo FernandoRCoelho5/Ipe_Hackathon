@@ -23,6 +23,8 @@ export function PublicFooter() {
             <Link
               key={link.href}
               href={link.href}
+              // Sem prefetch: o link da demonstração só deve agir quando clicado.
+              prefetch={false}
               className="text-white/90 underline-offset-4 hover:underline"
             >
               {link.label}

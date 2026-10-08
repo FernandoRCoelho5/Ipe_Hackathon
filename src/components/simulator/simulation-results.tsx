@@ -78,7 +78,7 @@ export function SimulationResults({
             className={cn(
               "rounded-full px-2.5 py-0.5 text-sm font-semibold tabular",
               delta.central < 0
-                ? "bg-azul-cidade/15 text-azul-rio dark:text-azul-cidade"
+                ? "bg-azul-cidade/15 text-info-fg"
                 : "bg-surface-muted text-fg-muted",
             )}
           >

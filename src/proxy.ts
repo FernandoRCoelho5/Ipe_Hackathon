@@ -21,7 +21,9 @@ import { verifySession } from "@/server/auth/session-token";
 export async function proxy(request: NextRequest) {
   const { pathname, search, searchParams } = request.nextUrl;
 
-  if (searchParams.get("demo") === "1") {
+  // Só uma navegação de verdade entra no Modo Apresentação: um prefetch do link
+  // "Ver demonstração" não pode trocar o perfil de quem só passou pela página.
+  if (searchParams.get("demo") === "1" && !isPrefetch(request)) {
     const token = await issueSessionToken("admin-municipal");
     // Vale já para esta renderização (cabeçalho Cookie da requisição) e para as próximas.
     request.cookies.set(SESSION_COOKIE, token);
@@ -45,6 +47,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
   return NextResponse.next();
+}
+
+/** Prefetch do App Router (link visível ou com hover) ou do navegador (Speculation Rules). */
+function isPrefetch(request: NextRequest): boolean {
+  const { headers } = request;
+  if (headers.has("next-router-prefetch") || headers.has("next-router-segment-prefetch")) {
+    return true;
+  }
+  return /prefetch|prerender/i.test(headers.get("sec-purpose") ?? headers.get("purpose") ?? "");
 }
 
 /** Espelha `PLATFORM_ROUTES` (o matcher precisa ser literal para a análise estática). */

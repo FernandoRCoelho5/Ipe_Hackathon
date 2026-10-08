@@ -6,7 +6,12 @@ import { logger } from "@/lib/logger";
 import { getSessionFromRequest } from "@/server/auth/session";
 import type { SessionPayload } from "@/server/auth/session-token";
 import { HttpError } from "@/server/errors";
-import { clientKey, createRateLimiter, type RateLimiter } from "./rate-limit";
+import {
+  checkRateLimit,
+  clientKey,
+  createRateLimitPolicy,
+  type RateLimitPolicy,
+} from "./rate-limit";
 
 /**
  * Infraestrutura comum dos Route Handlers da API v1:
@@ -17,14 +22,14 @@ import { clientKey, createRateLimiter, type RateLimiter } from "./rate-limit";
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const MAX_BODY_BYTES = 64 * 1024;
 
-/** 30 escritas por minuto por IP e rota. */
-const writeLimiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
+/** Escritas: 30 por minuto por IP e rota, com teto de 300 por minuto na rota. */
+const writePolicy = createRateLimitPolicy({ perClient: 30, perRoute: 300 });
 
 /**
  * POSTs de cálculo puro (simulação what-if, ESG) não gravam nada e são disparados
  * pelos controles deslizantes do simulador: limite mais folgado, ainda por IP e rota.
  */
-export const computeRateLimiter = createRateLimiter({ limit: 240, windowMs: 60_000 });
+export const computePolicy = createRateLimitPolicy({ perClient: 240, perRoute: 2400 });
 
 export const CACHE = {
   none: "no-store",
@@ -41,7 +46,7 @@ interface HandlerTools {
 type RouteHandler<Ctx> = (request: Request, context: Ctx, tools: HandlerTools) => Promise<Response>;
 
 interface ApiOptions {
-  rateLimiter?: RateLimiter;
+  rateLimit?: RateLimitPolicy;
   /** Ação protegida: exige sessão (401) com um perfil que tenha a permissão (403). */
   permission?: Permission;
 }
@@ -93,8 +98,11 @@ export function withApi<Ctx = unknown>(handler: RouteHandler<Ctx>, options: ApiO
 
     try {
       if (WRITE_METHODS.has(request.method)) {
-        const limiter = options.rateLimiter ?? writeLimiter;
-        const result = limiter.check(`${clientKey(request)}:${request.method}:${pathname}`);
+        const result = checkRateLimit(
+          options.rateLimit ?? writePolicy,
+          clientKey(request),
+          `${request.method}:${pathname}`,
+        );
         if (!result.allowed) {
           response = errorResponse(
             429,

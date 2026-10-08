@@ -72,7 +72,7 @@ export function AdoptionSection() {
             <p className="text-base leading-relaxed text-white/80">{t.ctaBody}</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <ButtonLink href="/mapa?demo=1" size="lg" variant="highlight">
+            <ButtonLink href="/mapa?demo=1" prefetch={false} size="lg" variant="highlight">
               {messages.landing.ctaDemo}
               <ArrowRight aria-hidden />
             </ButtonLink>

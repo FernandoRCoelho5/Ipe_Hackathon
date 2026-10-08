@@ -51,3 +51,40 @@ export function clientKey(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   return forwarded || request.headers.get("x-real-ip") || "local";
 }
+
+/**
+ * Política de limite de uma rota: um balde por cliente e um teto global da rota.
+ * O IP vem de cabeçalhos que o cliente pode forjar quando não há proxy confiável;
+ * o teto global garante que forjar `X-Forwarded-For` não multiplica o volume aceito.
+ */
+export interface RateLimitPolicy {
+  perClient: RateLimiter;
+  perRoute: RateLimiter;
+}
+
+export function createRateLimitPolicy({
+  perClient,
+  perRoute,
+  windowMs = 60_000,
+}: {
+  perClient: number;
+  perRoute: number;
+  windowMs?: number;
+}): RateLimitPolicy {
+  return {
+    perClient: createRateLimiter({ limit: perClient, windowMs }),
+    perRoute: createRateLimiter({ limit: perRoute, windowMs }),
+  };
+}
+
+/** Confere os dois baldes; o mais restritivo decide. */
+export function checkRateLimit(
+  policy: RateLimitPolicy,
+  client: string,
+  route: string,
+  now?: number,
+): RateLimitResult {
+  const routeResult = policy.perRoute.check(route, now);
+  const clientResult = policy.perClient.check(`${client}:${route}`, now);
+  return routeResult.allowed ? clientResult : routeResult;
+}

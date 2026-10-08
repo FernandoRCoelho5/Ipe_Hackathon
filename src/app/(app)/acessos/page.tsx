@@ -5,6 +5,7 @@ import { ROLE_ICONS } from "@/components/auth/role-icon";
 import { PageContainer } from "@/components/layout/page-container";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 import { can, canAccessRoute, PERMISSION_LABELS, PERMISSIONS, ROLES } from "@/domain/access/access";
 import { navItems } from "@/lib/config/navigation";
 import { messages } from "@/lib/i18n";
@@ -74,11 +75,14 @@ export default function Page() {
       </section>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <section aria-labelledby="matrix-title" className="flex flex-col gap-4">
+        <section aria-labelledby="matrix-title" className="flex min-w-0 flex-col gap-4">
           <h2 id="matrix-title" className="text-lg font-semibold text-fg">
             {t.matrixTitle}
           </h2>
-          <div className="overflow-x-auto rounded-card border border-line bg-surface shadow-card">
+          <ScrollRegion
+            label={t.matrixCaption}
+            className="rounded-card border border-line bg-surface shadow-card"
+          >
             <table className="w-full min-w-[40rem] border-collapse text-sm">
               <caption className="sr-only">{t.matrixCaption}</caption>
               <thead>
@@ -122,7 +126,7 @@ export default function Page() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         </section>
 
         <aside className="flex flex-col gap-4 xl:pt-11">

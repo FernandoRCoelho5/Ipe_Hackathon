@@ -1,10 +1,10 @@
 import { newPilotRequestRequestSchema } from "@/lib/api/contracts";
 import { json, parseJson, withApi } from "@/server/http/handler";
-import { createRateLimiter } from "@/server/http/rate-limit";
+import { createRateLimitPolicy } from "@/server/http/rate-limit";
 import { getRepositories } from "@/server/repositories";
 
-/** Formulário público: limite baixo por IP para conter spam. */
-const pilotRequestLimiter = createRateLimiter({ limit: 5, windowMs: 60_000 });
+/** Formulário público: 5 pedidos por minuto por IP e no máximo 30 por minuto no total. */
+const pilotRequestPolicy = createRateLimitPolicy({ perClient: 5, perRoute: 30 });
 
 /**
  * POST /api/v1/pilot-requests — pedido de piloto feito na landing (público, sem login).
@@ -15,5 +15,5 @@ export const POST = withApi(
     const input = await parseJson(request, newPilotRequestRequestSchema);
     return json(await getRepositories().pilotRequests.create(input), { status: 201 });
   },
-  { rateLimiter: pilotRequestLimiter },
+  { rateLimit: pilotRequestPolicy },
 );

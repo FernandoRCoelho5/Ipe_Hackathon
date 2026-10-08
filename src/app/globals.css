@@ -107,6 +107,8 @@
   --danger-soft: #fdecea;
   --warning-soft: #fff4d6;
   --warning-fg: #6b4a00;
+  /* Texto informativo (azul) sobre fundos azulados; no escuro, um tom claro do Azul Cidade. */
+  --info-fg: #046a8f;
   /* Gráficos: "situação atual" × "com intervenção" (par validado para daltonismo). */
   --chart-current: #d2381c;
   --chart-simulated: #159ebf;
@@ -139,6 +141,7 @@
   --danger-soft: #3a1512;
   --warning-soft: #3a2c08;
   --warning-fg: #fcd877;
+  --info-fg: #7fd2e6;
   --chart-current: #e8553a;
   --chart-simulated: #159ebf;
   --chart-grid: #1b4231;
@@ -169,6 +172,7 @@
   --color-danger-soft: var(--danger-soft);
   --color-warning-soft: var(--warning-soft);
   --color-warning-fg: var(--warning-fg);
+  --color-info-fg: var(--info-fg);
   --color-chart-current: var(--chart-current);
   --color-chart-simulated: var(--chart-simulated);
 }

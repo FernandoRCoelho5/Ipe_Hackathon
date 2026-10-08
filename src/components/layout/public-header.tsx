@@ -51,7 +51,7 @@ export function PublicHeader() {
               {t.signIn}
             </ButtonLink>
           </span>
-          <ButtonLink href="/mapa?demo=1" size="md">
+          <ButtonLink href="/mapa?demo=1" prefetch={false} size="md">
             <span className="sm:hidden">{t.ctaDemoShort}</span>
             <span className="hidden sm:inline">{t.ctaDemo}</span>
           </ButtonLink>

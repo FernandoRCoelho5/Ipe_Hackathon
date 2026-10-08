@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ui/scroll-region";
 import { cn } from "@/lib/cn";
 import type { OutlineBlock, ReportOutline } from "./report-outline";
 
@@ -91,14 +92,14 @@ function PreviewBlock({ block }: { block: OutlineBlock }) {
             <div key={kpi.label} className="flex flex-col gap-1 rounded-control bg-accent-soft p-3">
               <dt className="text-xs text-fg-muted">{kpi.label}</dt>
               <dd className="text-lg font-bold text-fg tabular">{kpi.value}</dd>
-              {kpi.hint && <dd className="text-xs text-fg-subtle">{kpi.hint}</dd>}
+              {kpi.hint && <dd className="text-xs text-fg-muted">{kpi.hint}</dd>}
             </div>
           ))}
         </dl>
       );
     case "table":
       return (
-        <div className="overflow-x-auto">
+        <ScrollRegion label={block.caption ?? block.columns.map((c) => c.label).join(", ")}>
           <table className="w-full min-w-[32rem] border-collapse text-sm">
             {block.caption && (
               <caption className="mb-2 text-left text-xs font-semibold text-fg-muted">
@@ -140,7 +141,7 @@ function PreviewBlock({ block }: { block: OutlineBlock }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       );
   }
 }

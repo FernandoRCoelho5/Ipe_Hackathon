@@ -51,7 +51,9 @@ export function AppHeader({ municipalities }: AppHeaderProps) {
             <TourButton />
           </span>
           <DemoDataBadge />
-          <ThemeToggle />
+          <span className="hidden sm:block">
+            <ThemeToggle />
+          </span>
           <ProfileMenu />
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { whatIfRequestSchema } from "@/lib/api/contracts";
-import { computeRateLimiter, json, parseJson, withApi } from "@/server/http/handler";
+import { computePolicy, json, parseJson, withApi } from "@/server/http/handler";
 import { runWhatIf } from "@/server/services/simulation";
 
 /** POST /api/v1/simulation/what-if — simula intervenções num quarteirão. */
@@ -8,5 +8,5 @@ export const POST = withApi(
     const scenario = await parseJson(request, whatIfRequestSchema);
     return json(await runWhatIf(scenario));
   },
-  { rateLimiter: computeRateLimiter },
+  { rateLimit: computePolicy },
 );
