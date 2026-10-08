@@ -179,8 +179,15 @@ export function ThermalMap({
     }
   });
 
+  /**
+   * Animações de câmera só depois que o mapa terminou de carregar: no carregamento,
+   * cada quadro animado reposicionaria os rótulos do basemap (≈ 400 ms de bloqueio).
+   */
+  const settled = useRef(false);
+  const cameraDuration = useEffectEvent(() => (reducedMotion || !settled.current ? 0 : 900));
+
   const fitToMunicipality = useEffectEvent(() => {
-    mapRef.current?.fitBounds(bbox, { padding, duration: reducedMotion ? 0 : 900 });
+    mapRef.current?.fitBounds(bbox, { padding, duration: cameraDuration() });
   });
 
   // ── Criação do mapa (uma vez) ──
@@ -205,6 +212,8 @@ export function ThermalMap({
           touchPitch: false,
           attributionControl: { compact: true },
           locale: MAP_LOCALE,
+          // Rótulos sem transição: menos reposicionamentos durante o carregamento.
+          fadeDuration: 0,
         });
       } catch (error) {
         logger.warn("Mapa indisponível (WebGL)", { error: String(error) });
@@ -231,6 +240,9 @@ export function ThermalMap({
         if (id !== undefined) handleClick(String(id));
       });
       map.on("error", (event) => logger.warn("Erro no mapa", { error: String(event.error) }));
+      map.once("idle", () => {
+        settled.current = true;
+      });
     })();
 
     return () => {
@@ -292,7 +304,7 @@ export function ThermalMap({
         map.fitBounds(featureBounds(feature), {
           padding: widen(padding, 96),
           maxZoom: 15.5,
-          duration: reducedMotion ? 0 : 900,
+          duration: cameraDuration(),
         });
       }
     }
